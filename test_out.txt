@@ -1,0 +1,32 @@
+INFO:pipeline.experiment_extractor:Extracting experiments from 1 blocks
+Starting extraction...
+Extracted 1 experiments.
+--- Experiment 1 ---
+{
+  "experiment_id": "CRISPR_Cas9_Knockout",
+  "protein_or_target": "p53",
+  "experiment_type": "CRISPR-Cas9 knockout",
+  "methodology": "Lipofectamine 3000 transfection",
+  "conditions": {
+    "temperature": "37C",
+    "co2_level": "5%",
+    "time": "48 hours",
+    "reagent_concentration": "2 ug/mL"
+  },
+  "measurements": "Western blot analysis",
+  "results": "92% reduction in p53 protein levels",
+  "missing_parameters": [
+    "buffer",
+    "ph"
+  ],
+  "inferred_parameters": [
+    {
+      "field": "cell_type",
+      "reason": "Mention of MCF-7 cells in the text",
+      "confidence": 0.9
+    }
+  ],
+  "overall_confidence": 0.8,
+  "section_context": "Methods",
+  "block_id": "test_block"
+}

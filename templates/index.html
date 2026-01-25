@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SciPipe | Experiment Intelligence Engine</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">🧬</span>
+                <span class="logo-text">SciPipe</span>
+            </div>
+            <nav class="nav-menu">
+                <div class="nav-item active" data-tab="summary">
+                    <span>✨</span> Summarize
+                </div>
+                <div class="nav-item" data-tab="chat">
+                    <span>💬</span> Experiment Chat
+                </div>
+                <div class="nav-item" data-tab="pdf">
+                    <span>📄</span> PDF Processing
+                </div>
+                <div class="nav-item" data-tab="extract">
+                    <span>🧪</span> Extract Experiments
+                </div>
+                <div class="nav-item" data-tab="config">
+                    <span>⚙️</span> Configuration
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="status-dot online"></span>
+                    <span>API: <span id="api-status">Checking...</span></span>
+                </div>
+                <div class="status-indicator">
+                    <span class="status-dot" id="grobid-dot"></span>
+                    <span>GROBID: <span id="grobid-status">Checking...</span></span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="header">
+                <h2 id="tab-title">Summarize Sections</h2>
+                <div class="header-actions">
+                    <span class="badge badge-version">v1.2.0</span>
+                </div>
+            </header>
+
+            <!-- Summarize Tab -->
+            <div id="tab-summary" class="content-pane active">
+                <div class="card">
+                    <div class="card-title">📝 Section Input</div>
+                    <textarea id="summary-input" class="search-input"
+                        placeholder="Paste a scientific section here to summarize..." rows="8"
+                        style="width: 100%; resize: vertical; margin-bottom: 1rem;"></textarea>
+                    <button id="summarize-btn" class="btn btn-primary">Summarize Section</button>
+                </div>
+                <div id="summary-result-card" class="card" style="display: none;">
+                    <div class="card-title">✨ Summary Result</div>
+                    <div id="summary-content" class="field-value"></div>
+                </div>
+            </div>
+
+            <!-- Experiment Chat Tab -->
+            <div id="tab-chat" class="content-pane">
+                <div class="chat-container">
+                    <div id="chat-messages" class="chat-messages">
+                        <div class="message assistant">
+                            <div class="avatar">🤖</div>
+                            <div class="bubble">I am the Experiment Intelligence Engine. Ask me anything about the
+                                experiments in your Knowledge Base.</div>
+                        </div>
+                    </div>
+                    <div class="chat-input-row">
+                        <input type="text" id="chat-input" class="search-input"
+                            placeholder="e.g. What was the DNA concentration for the Arabidopsis leaves?">
+                        <button id="chat-send" class="btn btn-primary">Ask Intelligence</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PDF Processing Tab -->
+            <div id="tab-pdf" class="content-pane">
+                <div class="card">
+                    <div class="card-title">📄 Upload Manuscript</div>
+                    <div id="upload-zone" class="upload-zone"
+                        style="border: 2px dashed var(--border); padding: 3rem; text-align: center; border-radius: var(--radius); cursor: pointer;">
+                        <span style="font-size: 2rem; display: block; margin-bottom: 1rem;">📤</span>
+                        <p>Click or drag & drop scientific PDF</p>
+                        <input type="file" id="pdf-input" hidden accept=".pdf">
+                    </div>
+                    <div id="upload-info" style="display: none; margin-top: 1rem;">
+                        <div
+                            style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary); padding: 1rem; border-radius: var(--radius-sm);">
+                            <span id="filename-display">file.pdf</span>
+                            <button id="remove-pdf" class="btn btn-error"
+                                style="padding: 0.4rem 0.8rem;">Remove</button>
+                        </div>
+                        <button id="process-pdf-btn" class="btn btn-primary"
+                            style="margin-top: 1rem; width: 100%;">Ingest into Knowledge Base</button>
+                    </div>
+                </div>
+
+                <div id="pipeline-progress" class="card" style="display: none;">
+                    <div class="card-title">⚙️ Processing Pipeline</div>
+                    <div class="pipeline-stages">
+                        <div class="stage" data-stage="conversion"><span class="stage-status">⏳</span> PDF to TEI
+                            Conversion</div>
+                        <div class="stage" data-stage="summarization"><span class="stage-status">⏳</span> Section
+                            Summarization</div>
+                        <div class="stage" data-stage="experiment_extraction"><span class="stage-status">⏳</span>
+                            Experiment Intelligence Extraction</div>
+                        <div class="stage" data-stage="storage"><span class="stage-status">⏳</span> Knowledge Base
+                            Indexing</div>
+                    </div>
+                </div>
+
+                <div id="pdf-results" class="card" style="display: none;">
+                    <div class="card-title">📊 Processing Results</div>
+                    <div id="results-summary" class="summary-grid"
+                        style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;">
+                    </div>
+
+                    <div class="tabs-small"
+                        style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border); margin-bottom: 1rem;">
+                        <div class="tab-sm active" data-subtab="sections">Sections</div>
+                        <div class="tab-sm" data-subtab="experiments">Experiments</div>
+                    </div>
+
+                    <div id="pdf-sections-content" class="subtab-content active"></div>
+                    <div id="pdf-experiments-content" class="subtab-content" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Extract Tab -->
+            <div id="tab-extract" class="content-pane">
+                <div class="card">
+                    <div class="card-title">🧪 Raw Text Extraction</div>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">Paste specific experimental snippets
+                        here for real-time structured analysis.</p>
+                    <textarea id="extract-input" class="search-input" rows="6"
+                        style="width: 100%; resize: vertical; margin-bottom: 1rem;"
+                        placeholder="e.g. We achieves successful DNA isolation from Arabidopsis leaves..."></textarea>
+                    <button id="extract-btn" class="btn btn-primary">Extract Scientific Units</button>
+                </div>
+                <div id="extract-results-container" style="display: none;">
+                    <div class="card-title">🔬 Extracted Intelligence</div>
+                    <div id="extracted-list" class="experiment-list"></div>
+                </div>
+            </div>
+
+            <!-- Config Tab -->
+            <div id="tab-config" class="content-pane">
+                <div class="card">
+                    <div class="card-title">⚙️ System Configuration</div>
+                    <div class="config-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div class="config-item">
+                            <span class="field-label">LLM Provider</span>
+                            <span id="cfg-provider" class="field-value">--</span>
+                        </div>
+                        <div class="config-item">
+                            <span class="field-label">Extraction Model</span>
+                            <span id="cfg-model" class="field-value">--</span>
+                        </div>
+                        <div class="config-item">
+                            <span class="field-label">GROBID Endpoint</span>
+                            <span id="cfg-grobid" class="field-value">--</span>
+                        </div>
+                        <div class="config-item">
+                            <span class="field-label">API Key Status</span>
+                            <span id="cfg-apikey" class="field-value">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>
