@@ -1,6 +1,6 @@
 ﻿# hblocks-summarizer
 
-Summarize normalized hblocks by section using OpenRouter (Phi-3 by default) and attach summaries to the schema.
+Summarize normalized hblocks by section using OpenRouter (Liquid Foundation model `lfm-2.5-1.2b-instruct` by default) and attach summaries to the schema.
 
 ## What it does
 

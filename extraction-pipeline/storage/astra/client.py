@@ -10,6 +10,7 @@ from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
 
 
+
 @dataclass(frozen=True)
 class AstraConfig:
     secure_bundle_env: str = "ASTRA_DB_SECURE_CONNECT_BUNDLE"

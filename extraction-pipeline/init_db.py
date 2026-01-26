@@ -7,11 +7,13 @@ from typing import Iterable, List
 
 from qdrant_client.models import Distance, HnswConfigDiff, VectorParams
 
-from astra import AstraClientFactory
-from qdrant import QdrantClientFactory
+from storage.astra import AstraClientFactory
+from storage.qdrant import QdrantClientFactory
+from env import load_env
+load_env()
 
 ROOT = Path(__file__).resolve().parent
-SCHEMAS = ROOT / "schemas"
+SCHEMAS = ROOT / "storage/schemas"
 ASTRA_SCHEMAS = SCHEMAS / "astra"
 QDRANT_SCHEMAS = SCHEMAS / "qdrant"
 
@@ -30,6 +32,7 @@ def init_astra() -> None:
             ASTRA_SCHEMAS / "astra_hblocks_sections.cql",
             ASTRA_SCHEMAS / "astra_hblocks_papers.cql",
             ASTRA_SCHEMAS / "astra_hblocks_by_section.cql",
+            ASTRA_SCHEMAS / "astra_experiments.cql"
         ]
         for cql in cql_files:
             for stmt in read_cql(cql):
@@ -50,7 +53,7 @@ def init_qdrant() -> None:
 
     vector_size = int(os.getenv("QDRANT_VECTOR_SIZE", "768"))
 
-    for name in ["hblocks_blocks", "hblocks_sections", "hblocks_papers"]:
+    for name in ["hblocks_blocks", "hblocks_sections", "hblocks_papers", "experiments"]:
         if name not in existing:
             schema = _load_qdrant_schema(name)
             hnsw = schema.get("hnsw", {})
@@ -80,6 +83,17 @@ def init_qdrant() -> None:
             client.create_payload_index(
                 collection_name=name,
                 field_name="block_id",
+                field_schema="keyword",
+            )
+        if name == "experiments":
+            client.create_payload_index(
+                collection_name=name,
+                field_name="experiment_id",
+                field_schema="keyword",
+            )
+            client.create_payload_index(
+                collection_name=name,
+                field_name="paper_id",
                 field_schema="keyword",
             )
 

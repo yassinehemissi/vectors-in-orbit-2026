@@ -5,10 +5,16 @@ Pipeline to discover, retrieve, and extract experiments from stored hblocks (Ast
 ## Stages implemented
 
 - **Stage A:** candidate discovery from section summaries (Astra)
+- **Stage A2:** augmentation prompt builder (paper‑specific hints)
 - **Stage B:** evidence retrieval (Astra + optional Qdrant)
-- **Stage C:** structured extraction (LLM)
-- **Stage D:** XAI / conflict check (LLM)
-- **Stage E:** dedup (hash‑based, lightweight)
+- **Stage C:** single LLM call per experiment producing extraction + inline XAI
+- **Stage E:** dedup (hash‑based, drops duplicates)
+
+## Output shape
+
+- Returns a single `experiments[]` array of flat objects.
+- Each field is `{ value, evidence, confidence }`.
+- `title` is always inferred if missing; other fields become `missing` if not supported.
 
 ## Usage
 
@@ -21,11 +27,11 @@ result = pipeline.run(paper_id="paper-123")
 
 ## Environment
 
-- `OPENAI_API_KEY`
-- `OPENAI_BASE_URL` (optional for OpenAI‑compatible providers)
+- `ESPRIT_API_KEY`
+- `ESPRIT_BASE_URL` (optional for OpenAI‑compatible providers)
 
 ## Notes
 
 - This module assumes Astra tables + Qdrant collections are initialized.
-- Qdrant vector search is optional (toggle in config).
-- Dedup is a lightweight hash pass; you can add LLM judge for borderline cases.
+- Qdrant vector search is optional (default true, toggle in config).
+- Debug JSONL files are written if `HBLOCKS_DEBUG_DIR` is set.

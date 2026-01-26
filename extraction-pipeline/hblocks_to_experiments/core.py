@@ -13,6 +13,7 @@ from storage.astra import AstraClientFactory
 from storage.qdrant import QdrantClientFactory
 
 from .config import HBlocksToExperimentsConfig
+
 from .embedder import Embedder
 
 
@@ -24,7 +25,11 @@ def _safe_json(text: str) -> dict:
 
 
 def _normalize(s: str) -> str:
-    return re.sub(r"\s+", " ", (s or "").strip().lower())
+    if s is None:
+        return ""
+    if isinstance(s, list):
+        s = " ".join(str(x) for x in s)
+    return re.sub(r"\s+", " ", str(s).strip().lower())
 
 
 def _debug_write(name: str, payload: object) -> None:
@@ -45,21 +50,25 @@ class HBlocksToExperiments:
     def run(self, paper_id: str) -> Dict[str, object]:
         sections = self._load_section_summaries(paper_id)
         _debug_write("stage_a_sections.jsonl", {"paper_id": paper_id, "sections": sections})
+        augmentation = self._build_augmentation(sections)
+        _debug_write("stage_a_augmentation.jsonl", {"paper_id": paper_id, "augmentation": augmentation})
         candidates = self._stage_a_candidates(sections)
         _debug_write("stage_a_candidates.jsonl", {"paper_id": paper_id, "candidates": candidates})
-        evidence = [self._stage_b_evidence(paper_id, c) for c in candidates]
-        extracted = [self._stage_c_extract(c, e) for c, e in zip(candidates, evidence)]
-        print(extracted)
-        xai = [self._stage_d_xai(c, e, x) for c, e, x in zip(candidates, evidence, extracted)]
-        deduped = self._stage_e_dedup(extracted)
+        experiments = []
+        for c in candidates:
+            print(c["experiment_id"])
+            ev = self._stage_b_evidence(paper_id, c)
+            _debug_write("stage_b_evidence.jsonl", {"paper_id": paper_id, "candidate": c, "evidence": ev})
+            ex = self._stage_c_extract(c, ev, augmentation)
+            _debug_write("stage_c_extraction.jsonl", {"paper_id": paper_id, "candidate": c, "extraction": ex})
+            experiments.append(ex)
+
+        deduped = self._stage_e_dedup(experiments)
+        _debug_write("stage_e_dedup.jsonl", {"paper_id": paper_id, "deduped": deduped})
 
         return {
             "paper_id": paper_id,
-            "candidates": candidates,
-            "evidence": evidence,
-            "extractions": extracted,
-            "xai": xai,
-            "deduped": deduped,
+            "experiments": deduped,
         }
 
     def _client(self) -> OpenAI:
@@ -267,13 +276,15 @@ class HBlocksToExperiments:
         finally:
             cluster.shutdown()
 
-    def _stage_c_extract(self, candidate: Dict[str, object], evidence: List[Dict[str, object]]) -> Dict[str, object]:
+    def _stage_c_extract(self, candidate: Dict[str, object], evidence: List[Dict[str, object]], augmentation: Dict[str, object]) -> Dict[str, object]:
         client = self._client()
         payload = {
         "candidate": candidate,
         "evidence": evidence,
+        "augmentation": augmentation,
         "instruction": (
-            "TASK: Extract ONE experiment using ONLY the provided evidence blocks.\n\n"
+            "TASK: Extract ONE experiment using ONLY the provided evidence blocks.\n"
+            "You may INFER the TITLE if not explicit; all other fields must be evidence-backed.\n\n"
 
             "HARD RULES (MUST FOLLOW):\n"
             "1) Use ONLY evidence blocks as ground truth. The candidate is NOT evidence.\n"
@@ -283,42 +294,46 @@ class HBlocksToExperiments:
             "4) For every field:\n"
             "   - If supported explicitly by evidence: fill it.\n"
             "   - If NOT explicitly supported: set it to null AND add the field name to missing.\n"
+            "   - EXCEPT for title: if not explicit, infer from candidate and do NOT mark missing.\n"
             "5) NO invention: do not infer, generalize, or paraphrase beyond what is stated.\n"
             "   - Prefer short, literal phrasing from evidence.\n"
-            "6) evidence_map MUST be: field_name -> list of BLOCK_IDS ONLY.\n"
+            "6) evidence for fields MUST be inline in each field object (value + evidence + confidence).\n"
             "   - BLOCK_IDs must start with 'b_' (e.g., 'b_123...').\n"
             "   - NEVER output section ids ('s_...') or any other ids.\n"
-            "7) evidence_map MUST include an entry for EVERY non-null field (except evidence_map and missing).\n"
-            "8) evidence_map values must be ONLY ids (no text snippets).\n"
-            "9) Consistency rules:\n"
-            "   - Every field listed in missing MUST be null.\n"
-            "   - Every null field (except evidence_map, missing) MUST be listed in missing.\n"
-            "10) Metrics must be metric NAMES only (e.g., 'RMSD', 'DCC', 'inference time').\n"
+            "7) Consistency rules:\n"
+            "   - Every field listed in missing MUST have value null.\n"
+            "   - Every null field (except title) MUST be listed in missing.\n"
+            "8) Metrics must be metric NAMES only (e.g., 'RMSD', 'DCC', 'inference time').\n"
             "    - Put numeric values / speedups / comparisons in results or runtime_efficiency.\n"
-            "11) baselines: include ONLY explicitly named baseline methods/models from evidence.\n"
-            "12) runtime_efficiency: only if evidence includes time/speed/compute; include the concrete claim/value if present.\n\n"
+            "9) baselines: include ONLY explicitly named baseline methods/models from evidence.\n"
+            "10) runtime_efficiency: only if evidence includes time/speed/compute; include the concrete claim/value if present.\n\n"
 
             "OUTPUT SCHEMA (all keys required):\n"
             "{\n"
-            "  \"experiment_name\": string or null,\n"
-            "  \"goal\": string or null,\n"
-            "  \"setup\": string or null,\n"
-            "  \"dataset\": string or null,\n"
-            "  \"metrics\": [string] or null,\n"
-            "  \"results\": string | [string] | null,\n"
-            "  \"baselines\": [string] or null,\n"
-            "  \"ablations\": [string] or null,\n"
-            "  \"runtime_efficiency\": string or null,\n"
-            "  \"limitations\": string or null,\n"
-            "  \"evidence_map\": {\"field_name\": [\"b_...\"]},\n"
-            "  \"missing\": [string]\n"
+            "  \"experiment_id\": string,\n"
+            "  \"experiment_type\": string,\n"
+            "  \"title\": {\"value\": string, \"evidence\": [\"b_...\"], \"confidence\": number},\n"
+            "  \"goal\": {\"value\": string|null, \"evidence\": [\"b_...\"], \"confidence\": number|null},\n"
+            "  \"setup\": {\"value\": string|null, \"evidence\": [\"b_...\"], \"confidence\": number|null},\n"
+            "  \"dataset\": {\"value\": string|null, \"evidence\": [\"b_...\"], \"confidence\": number|null},\n"
+            "  \"metrics\": {\"value\": [string]|null, \"evidence\": [\"b_...\"], \"confidence\": number|null},\n"
+            "  \"results\": {\"value\": string|[string]|null, \"evidence\": [\"b_...\"], \"confidence\": number|null},\n"
+            "  \"baselines\": {\"value\": [string]|null, \"evidence\": [\"b_...\"], \"confidence\": number|null},\n"
+            "  \"ablations\": {\"value\": [string]|null, \"evidence\": [\"b_...\"], \"confidence\": number|null},\n"
+            "  \"runtime_efficiency\": {\"value\": string|null, \"evidence\": [\"b_...\"], \"confidence\": number|null},\n"
+            "  \"limitations\": {\"value\": string|[string]|null, \"evidence\": [\"b_...\"], \"confidence\": number|null},\n"
+            "  \"missing\": [string],\n"
+            "  \"conflicts\": [\n"
+            "    {\"field\": string, \"description\": string, \"conflicting_blocks\": [\"b_...\"]}\n"
+            "  ],\n"
+            "  \"confidence_overall\": number,\n"
+            "  \"confidence_reasons\": [string]\n"
             "}\n\n"
 
             "FINAL CHECK BEFORE OUTPUT:\n"
             "- No 's_' ids anywhere.\n"
-            "- evidence_map contains only 'b_' ids.\n"
-            "- evidence_map has entries for every non-null field.\n"
-            "- missing exactly matches the null fields.\n"
+            "- All evidence lists contain only 'b_' ids.\n"
+            "- Missing exactly matches fields with null values (except title).\n"
         )
         }
 
@@ -341,43 +356,76 @@ class HBlocksToExperiments:
         timeout=self.config.openai.timeout_sec,
         )
 
-        print(resp.choices[0].message.content)
-        print("===============================")
-        return _safe_json(resp.choices[0].message.content or "")
+        raw = resp.choices[0].message.content or ""
+        data = _safe_json(raw)
 
-    def _stage_d_xai(self, candidate: Dict[str, object], evidence: List[Dict[str, object]], extraction: Dict[str, object]) -> Dict[str, object]:
+        # Post-process: enforce title inference and missing consistency
+        if isinstance(data, dict):
+            data.setdefault("experiment_id", candidate.get("experiment_id"))
+            data.setdefault("experiment_type", candidate.get("experiment_type"))
+            title_obj = data.get("title") or {}
+            if not isinstance(title_obj, dict):
+                title_obj = {"value": None, "evidence": [], "confidence": None}
+            if not title_obj.get("value"):
+                title_obj["value"] = candidate.get("title") or f"Experiment {candidate.get('experiment_id')}"
+                if "title" in (data.get("missing") or []):
+                    data["missing"] = [m for m in data.get("missing") if m != "title"]
+            data["title"] = title_obj
+            # Ensure experiment_id is never null
+            if not data.get("experiment_id"):
+                data["experiment_id"] = candidate.get("experiment_id") or f"exp_{candidate.get('title') or 'unknown'}"
+            # Ensure title is never null
+            if not data.get("title", {}).get("value"):
+                data["title"] = {
+                    "value": candidate.get("title") or f"Experiment {data['experiment_id']}",
+                    "evidence": [],
+                    "confidence": None,
+                }
+        return data
+
+    def _build_augmentation(self, sections: List[Dict[str, object]]) -> Dict[str, object]:
         client = self._client()
         payload = {
-            "candidate": candidate,
-            "extraction": extraction,
-            "evidence": evidence,
+            "sections": sections,
+            "instruction": (
+                "TASK: Build paper-specific extraction hints ONLY.\n"
+                "No new facts. No extraction. Return only patterns and vocabulary.\n\n"
+                "Return STRICT JSON with keys:\n"
+                "- metric_vocab (list of strings)\n"
+                "- experiment_type_hints (list of strings)\n"
+                "- table_mapping_hints (list of strings)\n"
+                "- retrieval_keywords (list of strings)\n"
+                "- constraints (list of strings)\n"
+            ),
         }
         resp = client.chat.completions.create(
             model=self.config.openai.model,
             messages=[
-                {"role": "system", "content": "Generate grounded explanation and conflicts. Return JSON only."},
+                {"role": "system", "content": "You generate extraction hints only. JSON only."},
                 {"role": "user", "content": json.dumps(payload)},
             ],
             temperature=0.2,
             timeout=self.config.openai.timeout_sec,
         )
-        return _safe_json(resp.choices[0].message.content or "")
+        raw = resp.choices[0].message.content or ""
+        data = _safe_json(raw)
+        return data if isinstance(data, dict) else {}
 
-    def _stage_e_dedup(self, extracted: List[Dict[str, object]]) -> List[Dict[str, object]]:
+    def _stage_e_dedup(self, experiments: List[Dict[str, object]]) -> List[Dict[str, object]]:
         seen = {}
         out = []
-        for exp in extracted:
+        for exp in experiments:
             key = "|".join(
                 [
-                    _normalize(exp.get("dataset")),
-                    _normalize(exp.get("metrics")),
-                    _normalize(exp.get("goal")),
+                    _normalize((exp.get("dataset") or {}).get("value") if isinstance(exp.get("dataset"), dict) else exp.get("dataset")),
+                    _normalize((exp.get("metrics") or {}).get("value") if isinstance(exp.get("metrics"), dict) else exp.get("metrics")),
+                    _normalize((exp.get("goal") or {}).get("value") if isinstance(exp.get("goal"), dict) else exp.get("goal")),
                 ]
             )
             if key in seen:
-                exp["duplicate_of"] = seen[key]
+                continue
             else:
-                exp_id = exp.get("experiment_id") or exp.get("experiment_name") or str(len(seen))
+                exp_id = exp.get("experiment_id") or str(len(seen))
                 seen[key] = exp_id
             out.append(exp)
         return out

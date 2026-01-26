@@ -114,8 +114,17 @@ class BlocksToHBlocks:
 
             last_block_id = block.block_id
 
+        paper_id_meta = None
+        paper_title_meta = None
+        if blocks:
+            src = blocks[0].get("source") or {}
+            if isinstance(src, dict):
+                paper_id_meta = src.get("paper_id")
+                paper_title_meta = src.get("paper_title")
+
         meta: Dict[str, object] = {
-            "paper_id": paper_id,
+            "paper_id": paper_id or paper_id_meta,
+            "title": paper_title_meta,
             "input_blocks": len(blocks),
             "output_blocks": len(out_blocks),
             "dropped_noise": dropped_noise,

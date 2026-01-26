@@ -1,3 +1,4 @@
+# Classic
 .env 
 .env.local
 
@@ -6,3 +7,8 @@ __pycache__/
 node_modules/
 dist/
 build/
+
+# Removing Logs and Results
+extraction-pipeline/__pycache__/
+extraction-pipeline/results.json
+extraction-pipeline/logs

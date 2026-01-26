@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any, Dict, List, Optional
+import uuid
 
 from lxml import etree
 
@@ -32,6 +33,13 @@ class TEIToBlocks:
 
         root = parse_tei(tei_xml)
         tree = root.getroottree()
+        paper_id = str(uuid.uuid4())
+        paper_title = None
+        for t in root.xpath(".//tei:teiHeader//tei:titleStmt//tei:title", namespaces=TEI_NS):
+            txt = norm_text(iter_text(t))
+            if txt:
+                paper_title = txt
+                break
 
         @lru_cache(maxsize=None)
         def getpath(node: etree._Element) -> str:
@@ -61,7 +69,9 @@ class TEIToBlocks:
                 id_parts.append(f"{chunk_index}/{chunk_total}")
             block_id = stable_block_id(*id_parts)
 
-            source: Dict[str, Any] = {"tei_xpath": xpath}
+            source: Dict[str, Any] = {"tei_xpath": xpath, "paper_id": paper_id}
+            if paper_title:
+                source["paper_title"] = paper_title
             if xml_id:
                 source["xml_id"] = xml_id
             if extra:
@@ -157,6 +167,10 @@ class TEIToBlocks:
                 if htxt:
                     add_block("section_title", htxt, local_stack + [htxt], heads[0])
                     local_stack.append(htxt)
+            elif not local_stack:
+                # GROBID sometimes emits body divs without heads; add a stable fallback.
+                add_block("section_title", "Main", ["Main"], div)
+                local_stack.append("Main")
 
             for p in div.xpath("./tei:p", namespaces=TEI_NS):
                 raw = norm_text(iter_text(p))
@@ -196,10 +210,18 @@ class TEIToBlocks:
                 if txt:
                     add_block("title", txt, ["front"], t)
 
+            emitted_abstract = False
             for a in root.xpath(".//tei:text/tei:front//tei:abstract", namespaces=TEI_NS):
                 txt = norm_text(iter_text(a))
                 if txt:
                     emit_chunks("abstract", txt, ["front", "abstract"], a)
+                    emitted_abstract = True
+            if not emitted_abstract:
+                for a in root.xpath(".//tei:teiHeader//tei:profileDesc//tei:abstract", namespaces=TEI_NS):
+                    txt = norm_text(iter_text(a))
+                    if txt:
+                        emit_chunks("abstract", txt, ["front", "abstract"], a)
+                        break
 
         body_nodes = root.xpath(".//tei:text/tei:body", namespaces=TEI_NS)
         body = body_nodes[0] if body_nodes else root

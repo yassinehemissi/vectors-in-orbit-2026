@@ -1,0 +1,17 @@
+﻿{
+  "collection": "experiments",
+  "vectors": {
+    "size": 768,
+    "distance": "Cosine"
+  },
+  "hnsw": {
+    "m": 16,
+    "ef_construct": 128
+  },
+  "payload": {
+    "experiment_id": "string",
+    "paper_id": "string",
+    "summary_hash": "string",
+    "experiment_type": "string"
+  }
+}
