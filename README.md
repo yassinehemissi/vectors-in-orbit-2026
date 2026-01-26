@@ -1,4 +1,4 @@
-# Babyneers — Vectors in Orbit 2016
+# Babyneers — Vectors in Orbit 2026
 
 ## Introduction
 
@@ -212,4 +212,5 @@ Experimentein.ai demonstrates:
 ---
 
 *AI-assisted documentation*  
-**Vectors in Orbit 2016** — GDC SupCom x FST x Qdrant 2026 Babyneers Team. All rights reserved.
+**Vectors in Orbit 2026** — GDC SupCom x FST x Qdrant 2026 Babyneers Team. All rights reserved.
+
