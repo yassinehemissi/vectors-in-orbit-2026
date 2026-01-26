@@ -1,4 +1,11 @@
-﻿const tourStops = [
+﻿"use client";
+
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { SiteFooter } from "@/components/site-footer";
+import { SiteHeader } from "@/components/site-header";
+
+const tourStops = [
   {
     title: "Discover",
     description: "Search papers and experiments with natural language prompts.",
@@ -73,54 +80,19 @@ const partnerLogos = [
 ];
 
 export default function Home() {
+  const [isSignInOpen, setIsSignInOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900">
       <div className="relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-gradient-to-br from-fuchsia-400/40 via-indigo-300/40 to-cyan-300/40 blur-3xl" />
-          <div className="absolute right-0 top-0 h-[420px] w-[420px] rounded-full bg-gradient-to-br from-sky-300/40 via-emerald-200/40 to-cyan-200/40 blur-3xl animate-float-slow" />
+          <div className="absolute right-0 top-0 h-[420px] w-[420px] rounded-full bg-gradient-to-br from-sky-300/40 via-emerald-200/40 to-cyan-300/40 blur-3xl animate-float-slow" />
           <div className="absolute bottom-0 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-gradient-to-br from-indigo-200/50 via-fuchsia-200/40 to-amber-200/40 blur-3xl" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,0,0,0.08),transparent_55%),radial-gradient(circle_at_80%_10%,rgba(0,0,0,0.06),transparent_40%)]" />
         </div>
 
-        <header className="relative mx-auto flex w-full max-w-6xl items-center justify-between px-6 pt-8">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 overflow-hidden rounded-full bg-neutral-900">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="Experimentein.ai logo" className="h-full w-full object-cover" />
-            </div>
-            <div className="text-sm font-semibold tracking-wide text-neutral-900">
-              Experimentein.ai
-            </div>
-          </div>
-          <nav className="hidden items-center gap-6 text-sm text-neutral-600 md:flex">
-            <a className="hover:text-neutral-900" href="#tour">
-              Product tour
-            </a>
-            <a className="hover:text-neutral-900" href="#features">
-              Features
-            </a>
-            <a className="hover:text-neutral-900" href="#evidence">
-              Evidence
-            </a>
-            <a className="hover:text-neutral-900" href="#partners">
-              Partners
-            </a>
-          </nav>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              className="hidden rounded-full border border-neutral-200/70 bg-white/80 px-4 py-2 text-sm text-neutral-700 shadow-sm backdrop-blur md:inline-flex"
-            >
-              Request access
-            </button>
-            <button
-              type="button"
-              className="rounded-full bg-neutral-900 px-4 py-2 text-sm text-white shadow-sm"
-            >
-              Launch demo
-            </button>
-          </div>
-        </header>
+        <SiteHeader onSignIn={() => setIsSignInOpen(true)} />
 
         <section className="relative mx-auto grid w-full max-w-6xl gap-12 px-6 pb-20 pt-16 md:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-6">
@@ -129,23 +101,17 @@ export default function Home() {
               Evidence-first science intelligence
             </div>
             <h1 className="font-display text-5xl font-semibold tracking-tight text-neutral-900 md:text-6xl">
-              A luminous control room for scientific discovery.
+              Bold, precise, and built for scientific velocity.
             </h1>
             <p className="max-w-xl text-base text-neutral-600 md:text-lg">
-              Experimentein.ai turns dense papers into cinematic experiment cards so
-              teams can read, compare, and decide with confidence.
+              Experimentein.ai transforms dense research into bold experiment cards so
+              teams can decide faster without losing the evidence.
             </p>
             <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                className="rounded-full bg-neutral-900 px-5 py-2 text-sm text-white shadow-sm"
-              >
+              <button type="button" className="btn-primary">
                 Start exploring
               </button>
-              <button
-                type="button"
-                className="rounded-full border border-neutral-200/70 bg-white/80 px-5 py-2 text-sm text-neutral-700 shadow-sm backdrop-blur"
-              >
+              <button type="button" className="btn-secondary">
                 Watch product tour
               </button>
             </div>
@@ -194,10 +160,7 @@ export default function Home() {
               </div>
               <div className="mt-5 flex items-center justify-between text-xs text-neutral-500">
                 <span>Evidence blocks linked</span>
-                <button
-                  type="button"
-                  className="rounded-full bg-neutral-900 px-3 py-1 text-xs text-white"
-                >
+                <button type="button" className="btn-primary px-3 py-1 text-xs">
                   View evidence
                 </button>
               </div>
@@ -330,10 +293,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <button
-              type="button"
-              className="mt-6 w-full rounded-full bg-neutral-900 px-4 py-2 text-sm text-white"
-            >
+            <button type="button" className="btn-primary mt-6 w-full">
               Fill missing fields (120 pts)
             </button>
           </div>
@@ -349,10 +309,7 @@ export default function Home() {
                 Trusted infrastructure behind the platform.
               </h2>
             </div>
-            <button
-              type="button"
-              className="rounded-full border border-neutral-200/70 bg-neutral-50 px-4 py-2 text-sm text-neutral-700"
-            >
+            <button type="button" className="btn-secondary">
               View integrations
             </button>
           </div>
@@ -387,39 +344,110 @@ export default function Home() {
               </h2>
             </div>
             <div className="flex flex-wrap gap-3">
-              <button
-                type="button"
-                className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-neutral-900"
-              >
+              <a className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-neutral-900 transition hover:-translate-y-0.5" href="/sign-up">
                 Request access
-              </button>
-              <button
-                type="button"
-                className="rounded-full border border-white/30 px-5 py-2 text-sm text-white"
-              >
+              </a>
+              <a className="rounded-full border border-white/30 px-5 py-2 text-sm text-white transition hover:-translate-y-0.5" href="/pricing">
                 See pricing
-              </button>
+              </a>
             </div>
           </div>
         </div>
       </section>
 
-      <footer className="border-t border-neutral-200/70 bg-white">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 px-6 py-10 text-sm text-neutral-500 md:flex-row md:items-center md:justify-between">
-          <p>Experimentein.ai MVP - evidence-first science intelligence.</p>
-          <div className="flex gap-4">
-            <a className="hover:text-neutral-900" href="/privacy-policy">
-              Privacy
-            </a>
-            <a className="hover:text-neutral-900" href="/terms-of-service">
-              Terms
-            </a>
-            <a className="hover:text-neutral-900" href="/contact">
-              Contact
-            </a>
+      <SiteFooter />
+
+      {isSignInOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-lg overflow-hidden rounded-[28px] border border-neutral-200/70 bg-white shadow-xl">
+            <div className="grid md:grid-cols-[1fr_1.1fr]">
+              <div className="relative hidden h-full flex-col justify-between bg-neutral-900 p-6 text-white md:flex">
+                <div className="absolute inset-0">
+                  <div className="absolute -left-10 top-10 h-40 w-40 rounded-full bg-fuchsia-500/30 blur-2xl" />
+                  <div className="absolute right-0 top-0 h-44 w-44 rounded-full bg-cyan-400/30 blur-2xl" />
+                </div>
+                <div className="relative space-y-3">
+                  <p className="text-xs uppercase text-white/60">Experimentein.ai</p>
+                  <h2 className="font-display text-2xl font-semibold">
+                    Sign in to keep evidence close.
+                  </h2>
+                  <p className="text-xs text-white/70">
+                    Compare, enrich, and track research faster.
+                  </p>
+                </div>
+                <div className="relative rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
+                  Structured experiments. Zero guesswork.
+                </div>
+              </div>
+
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase text-neutral-400">Welcome back</p>
+                    <h3 className="font-display text-2xl font-semibold text-neutral-900">
+                      Sign in
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    className="rounded-full border border-neutral-200/70 px-3 py-1 text-xs text-neutral-600"
+                    onClick={() => setIsSignInOpen(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+                <form className="mt-5 space-y-4">
+                  <div>
+                    <label className="text-xs font-semibold text-neutral-600">Email</label>
+                    <input
+                      type="email"
+                      placeholder="you@lab.com"
+                      className="mt-2 w-full rounded-2xl border border-neutral-200/70 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-400 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-neutral-600">Password</label>
+                    <input
+                      type="password"
+                      placeholder="••••••••"
+                      className="mt-2 w-full rounded-2xl border border-neutral-200/70 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-400 focus:outline-none"
+                    />
+                  </div>
+                  <button type="submit" className="btn-primary w-full">
+                    Continue
+                  </button>
+                </form>
+                <div className="mt-4">
+                  <div className="flex items-center gap-3 text-xs text-neutral-400">
+                    <span className="h-px w-full bg-neutral-200/70" />
+                    or
+                    <span className="h-px w-full bg-neutral-200/70" />
+                  </div>
+                  <div className="mt-3 grid gap-3">
+                    <button
+                      type="button"
+                      className="btn-secondary w-full"
+                      onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+                    >
+                      Continue with Google
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary w-full"
+                      onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
+                    >
+                      Continue with GitHub
+                    </button>
+                  </div>
+                </div>
+                <p className="mt-4 text-center text-xs text-neutral-500">
+                  New here? <a href="/sign-up" className="text-neutral-900">Create an account</a>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </footer>
+      ) : null}
     </div>
   );
 }

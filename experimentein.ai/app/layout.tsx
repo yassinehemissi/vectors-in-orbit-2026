@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Manrope, Playfair_Display } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/components/auth-provider";
 
 const manrope = Manrope({
   variable: "--font-sans",
@@ -35,7 +36,7 @@ export default function RootLayout({
       <body
         className={`${manrope.variable} ${playfair.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
