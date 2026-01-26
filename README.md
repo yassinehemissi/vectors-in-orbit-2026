@@ -17,6 +17,10 @@ This section will include:
 - Setup and usage instructions
 - Results and future improvements
 
+## Pipeline (Short)
+
+This project includes a document processing pipeline that converts PDFs/TEI into structured blocks, normalizes them into relational hblocks, generates section/paper summaries, and extracts experiments with evidence grounding. Outputs are stored in Astra (Cassandra) for full text and Qdrant for vector search.
+
 ## Team Members
 
 - **Mohamed Amin Abassi** — Lead  
