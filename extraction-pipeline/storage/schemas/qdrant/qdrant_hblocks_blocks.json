@@ -1,0 +1,20 @@
+﻿{
+  "collection": "hblocks_blocks",
+  "vectors": {
+    "size": 768,
+    "distance": "Cosine"
+  },
+  "hnsw": {
+    "m": 16,
+    "ef_construct": 128
+  },
+  "payload": {
+    "block_id": "string",
+    "paper_id": "string",
+    "section_id": "string",
+    "type": "string",
+    "chunk": "object",
+    "text_hash": "string",
+    "block_index": "int"
+  }
+}
