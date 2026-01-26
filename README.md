@@ -117,8 +117,8 @@ See `experimentein.ai/README.md` for setup, deployment, and feature documentatio
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/babyneers/experimentein.git
-   cd experimentein
+   git clone https://github.com/yassinehemissi/vectors-in-orbit-2026
+   cd vectors-in-orbit-2026
    ```
 
 2. **Set up the extraction pipeline** (see `extraction-pipeline/README.md`)
@@ -213,5 +213,6 @@ Experimentein.ai demonstrates:
 
 *AI-assisted documentation*  
 **Vectors in Orbit 2026** — GDC SupCom x FST x Qdrant 2026 Babyneers Team. All rights reserved.
+
 
 
