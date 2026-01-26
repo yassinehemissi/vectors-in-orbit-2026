@@ -11,7 +11,7 @@ export default function PrivacyPolicyPage() {
           <h1 className="mt-2 font-display text-4xl font-semibold tracking-tight">
             Privacy Policy
           </h1>
-          <p className="mt-4 text-sm text-neutral-500">Last updated: {{DATE}}</p>
+          <p className="mt-4 text-sm text-neutral-500">Last updated: {new Date("1-27-2026").toUTCString()}</p>
 
           <div className="mt-8 space-y-6 text-sm text-neutral-600">
             <p>
