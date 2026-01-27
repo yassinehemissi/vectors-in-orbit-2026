@@ -2,8 +2,7 @@ import { ActivityCard } from "@/components/dashboard/activity-card";
 import { CreditBalanceCard } from "@/components/dashboard/credit-balance-card";
 import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
 import { StatCard } from "@/components/dashboard/stat-card";
-import { UsageChart } from "@/components/dashboard/usage-chart";
-import { getCreditSummary, getCreditUsageSeries } from "@/lib/credits";
+import { getCreditSummary } from "@/lib/credits";
 import { authOptions } from "@/auth";
 import { getServerSession } from "next-auth";
 import { connectToDatabase } from "@/lib/mongoose";
@@ -21,7 +20,6 @@ export default async function DashboardPage() {
   let researchItemCount = 0;
   let highlights: Array<{ title: string; detail: string }> = [];
   let activityItems: Array<{ title: string; detail: string; time: string }> = [];
-  let usageSeries: { labels: string[]; data: number[] } | null = null;
 
   if (email) {
     await connectToDatabase();
@@ -31,7 +29,6 @@ export default async function DashboardPage() {
       researchCount = await Research.countDocuments({ userId: user._id });
       researchItemCount = await ResearchItem.countDocuments({ userId: user._id });
       activityItems = await listRecentActivity(user._id, 3);
-      usageSeries = await getCreditUsageSeries(user._id, 7);
 
       const recent = await Research.find({ userId: user._id })
         .sort({ updatedAt: -1 })
@@ -105,11 +102,6 @@ export default async function DashboardPage() {
         </div>
       </div>
       <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <UsageChart
-          title="Credit usage"
-          data={usageSeries?.data}
-          labels={usageSeries?.labels}
-        />
         <ActivityCard
           items={
             activityItems.length
