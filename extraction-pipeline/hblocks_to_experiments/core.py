@@ -119,6 +119,7 @@ class HBlocksToExperiments:
         "- experiment_id (string like 'e_1')\n"
         "- experiment_type (one of: benchmark, ablation, efficiency, generalization, analysis, case_study)\n"
         "- title (paper-specific)\n"
+        "- description (1-2 sentence description of the experiment)\n"
         "- goal_or_hypothesis (1 sentence)\n"
         "- needed_evidence_types (list of strings)\n"
         "- predicted_source_sections (list of section_id strings)\n"
@@ -363,6 +364,7 @@ class HBlocksToExperiments:
         if isinstance(data, dict):
             data.setdefault("experiment_id", candidate.get("experiment_id"))
             data.setdefault("experiment_type", candidate.get("experiment_type"))
+            data.setdefault("description", candidate.get("description"))
             title_obj = data.get("title") or {}
             if not isinstance(title_obj, dict):
                 title_obj = {"value": None, "evidence": [], "confidence": None}

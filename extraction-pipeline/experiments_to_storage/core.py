@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 
 import json
+import uuid
 from dataclasses import dataclass
 from typing import Dict, Iterable, List, Optional
 
@@ -67,10 +68,8 @@ class ExperimentsToStorage:
         cluster, session = AstraClientFactory().create()
         try:
             for exp in experiments:
-                exp_id = exp.get("experiment_id")
-                exp_id = str(exp_id) if exp_id else None
-                if not exp_id:
-                    continue
+                exp_id = str(uuid.uuid4())
+                exp["experiment_id"] = exp_id
 
                 evidence_map = {}
                 for key in [
@@ -95,12 +94,13 @@ class ExperimentsToStorage:
                 summary = _compact_text(exp)
 
                 session.execute(
-                    f"INSERT INTO {cfg.astra_table} (paper_id, experiment_id, experiment_type, title, goal, setup, dataset, metrics, results, baselines, ablations, runtime_efficiency, limitations, evidence_map, missing, conflicts, confidence_overall, confidence_reasons, fingerprint, summary, summary_hash, experiment_json) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                    f"INSERT INTO {cfg.astra_table} (paper_id, experiment_id, experiment_type, title, description, goal, setup, dataset, metrics, results, baselines, ablations, runtime_efficiency, limitations, evidence_map, missing, conflicts, confidence_overall, confidence_reasons, fingerprint, summary, summary_hash, experiment_json) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                     (
                         paper_id,
                         exp_id,
                         exp.get("experiment_type"),
                         _field_value(exp, "title"),
+                        _field_value(exp, "description"),
                         _field_value(exp, "goal"),
                         _field_value(exp, "setup"),
                         json.dumps(_field_value(exp, "dataset")) if isinstance(_field_value(exp, "dataset"), (dict, list)) else _field_value(exp, "dataset"),
@@ -133,10 +133,8 @@ class ExperimentsToStorage:
         payloads = []
         ids = []
         for exp in experiments:
-            exp_id = exp.get("experiment_id")
-            exp_id = str(exp_id) if exp_id else None
-            if not exp_id:
-                continue
+            exp_id = str(uuid.uuid4())
+            exp["experiment_id"] = exp_id
             summary = _compact_text(exp)
             texts.append(summary)
             payloads.append(
