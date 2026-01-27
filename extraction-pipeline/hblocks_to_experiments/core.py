@@ -52,7 +52,7 @@ class HBlocksToExperiments:
         _debug_write("stage_a_sections.jsonl", {"paper_id": paper_id, "sections": sections})
         augmentation = self._build_augmentation(sections)
         _debug_write("stage_a_augmentation.jsonl", {"paper_id": paper_id, "augmentation": augmentation})
-        candidates = self._stage_a_candidates(sections)
+        candidates = self._stage_a_candidates(sections, augmentation)
         _debug_write("stage_a_candidates.jsonl", {"paper_id": paper_id, "candidates": candidates})
         experiments = []
         for c in candidates:
@@ -97,10 +97,11 @@ class HBlocksToExperiments:
         finally:
             cluster.shutdown()
 
-    def _stage_a_candidates(self, sections: List[Dict[str, object]]) -> List[Dict[str, object]]:
+    def _stage_a_candidates(self, sections: List[Dict[str, object]], augmentation: Dict[str, object]) -> List[Dict[str, object]]:
         client = self._client()
         payload = {
     "sections": sections,  # list of {section_id, title, path, ...}
+    "augmentation": augmentation,
     "instruction": (
         "TASK: Propose candidate experiments present in THIS paper only.\n"
         "You MUST ground each experiment in the provided sections list.\n\n"
@@ -119,6 +120,7 @@ class HBlocksToExperiments:
         "- experiment_id (string like 'e_1')\n"
         "- experiment_type (one of: benchmark, ablation, efficiency, generalization, analysis, case_study)\n"
         "- title (paper-specific)\n"
+        "- description (1-2 sentence description of the experiment)\n"
         "- goal_or_hypothesis (1 sentence)\n"
         "- needed_evidence_types (list of strings)\n"
         "- predicted_source_sections (list of section_id strings)\n"
@@ -363,6 +365,7 @@ class HBlocksToExperiments:
         if isinstance(data, dict):
             data.setdefault("experiment_id", candidate.get("experiment_id"))
             data.setdefault("experiment_type", candidate.get("experiment_type"))
+            data.setdefault("description", candidate.get("description"))
             title_obj = data.get("title") or {}
             if not isinstance(title_obj, dict):
                 title_obj = {"value": None, "evidence": [], "confidence": None}
