@@ -23,34 +23,30 @@ const savedCollections = [
 
 export default function DashboardSavedPage() {
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900">
-      <SiteHeader />
-      <DashboardShell>
-        <DashboardTopBar
-          title="Saved"
-          subtitle="Your saved experiments and collections."
-        />
-        <div className="grid gap-4 md:grid-cols-2">
-          {savedCollections.map((collection) => (
-            <div
-              key={collection.title}
-              className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm"
-            >
-              <p className="text-xs uppercase text-neutral-400">Collection</p>
-              <h3 className="mt-2 text-lg font-semibold text-neutral-900">
-                {collection.title}
-              </h3>
-              <p className="mt-2 text-xs text-neutral-500">
-                {collection.count} experiments · Updated {collection.updated}
-              </p>
-              <button type="button" className="btn-secondary mt-4">
-                Open collection
-              </button>
-            </div>
-          ))}
-        </div>
-      </DashboardShell>
-      <SiteFooter />
-    </div>
+    <>
+      <DashboardTopBar
+        title="Saved"
+        subtitle="Your saved experiments and collections."
+      />
+      <div className="grid gap-4 md:grid-cols-2">
+        {savedCollections.map((collection) => (
+          <div
+            key={collection.title}
+            className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm"
+          >
+            <p className="text-xs uppercase text-neutral-400">Collection</p>
+            <h3 className="mt-2 text-lg font-semibold text-neutral-900">
+              {collection.title}
+            </h3>
+            <p className="mt-2 text-xs text-neutral-500">
+              {collection.count} experiments · Updated {collection.updated}
+            </p>
+            <button type="button" className="btn-secondary mt-4">
+              Open collection
+            </button>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }

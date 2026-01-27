@@ -6,6 +6,10 @@ if (!OPENROUTER_API_KEY || !OPENROUTER_EMBEDDING_MODEL) {
 }
 
 export async function embedText(text: string) {
+  if (!text.trim()) {
+    return [];
+  }
+
   const response = await fetch("https://openrouter.ai/api/v1/embeddings", {
     method: "POST",
     headers: {
@@ -27,5 +31,10 @@ export async function embedText(text: string) {
     data: Array<{ embedding: number[] }>;
   };
 
-  return data.data[0]?.embedding ?? [];
+  const embedding = data.data[0]?.embedding ?? [];
+  if (embedding.length !== 768) {
+    throw new Error(`Embedding size mismatch: ${embedding.length}`);
+  }
+
+  return embedding;
 }

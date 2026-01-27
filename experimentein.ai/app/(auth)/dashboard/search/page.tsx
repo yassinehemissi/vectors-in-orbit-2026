@@ -1,11 +1,9 @@
 ﻿"use client";
 
-import { useState } from "react";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { useEffect, useState } from "react";
 import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
-import { searchExperiments } from "@/storage/actions";
+import { searchContent } from "@/storage/actions";
+import Link from "next/link";
 
 const modes = ["Papers", "Sections", "Blocks", "Experiments"] as const;
 const sortModes = ["Relevance", "Recent", "Confidence"] as const;
@@ -17,86 +15,95 @@ type SortMode = (typeof sortModes)[number];
 
 type Filter = (typeof filters)[number];
 
-type ExperimentRow = {
-  experiment_id?: string;
-  experiment_type?: string;
-  summary?: string;
-};
+type SearchResult = Awaited<ReturnType<typeof searchContent>>[number];
 
 export default function DashboardSearchPage() {
   const [activeMode, setActiveMode] = useState<Mode>("Experiments");
   const [activeSort, setActiveSort] = useState<SortMode>("Relevance");
   const [activeFilters, setActiveFilters] = useState<Filter[]>([]);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<ExperimentRow[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const clearFilters = () => setActiveFilters([]);
 
   const toggleFilter = (filter: Filter) => {
     setActiveFilters((prev) =>
-      prev.includes(filter) ? prev.filter((item) => item !== filter) : [...prev, filter]
+      prev.includes(filter)
+        ? prev.filter((item) => item !== filter)
+        : [...prev, filter],
     );
   };
 
   const handleSearch = async () => {
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
     setIsLoading(true);
+    setResults([]);
     try {
-      const data = (await searchExperiments(query)) as ExperimentRow[];
-      console.log(data);
+      const data = await searchContent(
+        query,
+        activeMode.toLowerCase() as SearchResult["kind"],
+      );
       setResults(data);
     } finally {
       setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    setResults([]);
+  }, [activeMode, activeSort, activeFilters]);
+
+  const hasQuery = query.trim().length > 0;
+  const hasResults = results.length > 0;
+  const showEmpty = !isLoading && !hasResults;
+
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900">
-      <SiteHeader />
-      <DashboardShell>
-        <DashboardTopBar
-          title="Search"
-          subtitle="Find experiments, papers, and evidence fast."
-        />
-        <div className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="flex w-full gap-2 md:max-w-lg">
+    <>
+      <DashboardTopBar
+        title="Search"
+        subtitle="Find experiments, papers, and evidence fast."
+      />
+      <div className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="flex w-full flex-col gap-3 md:max-w-2xl">
+              <label className="text-xs uppercase text-neutral-400">
+                Search query
+              </label>
+              <div className="flex w-full gap-2">
                 <input
                   type="text"
-                  placeholder="Search experiments, papers, proteins..."
+                  placeholder="Search experiments, papers, sections..."
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   className="w-full rounded-2xl border border-neutral-200/70 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-400 focus:outline-none"
                 />
-                <button type="button" className="btn-primary" onClick={handleSearch}>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={handleSearch}
+                  disabled={!hasQuery || isLoading}
+                >
                   {isLoading ? "Searching" : "Search"}
                 </button>
               </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="text-neutral-500">Sort by</span>
-                {sortModes.map((mode) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setActiveSort(mode)}
-                    className={`rounded-full px-3 py-1 ${
-                      activeSort === mode
-                        ? "bg-neutral-900 text-white"
-                        : "border border-neutral-200/70 text-neutral-600"
-                    }`}
-                  >
-                    {mode}
-                  </button>
-                ))}
-              </div>
+              <p className="text-xs text-neutral-500">
+                Semantic search across indexed papers and experiments.
+              </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs">
-              {modes.map((mode) => (
+              <span className="text-neutral-500">Sort by</span>
+              {sortModes.map((mode) => (
                 <button
                   key={mode}
                   type="button"
-                  onClick={() => setActiveMode(mode)}
+                  onClick={() => setActiveSort(mode)}
                   className={`rounded-full px-3 py-1 ${
-                    activeMode === mode
+                    activeSort === mode
                       ? "bg-neutral-900 text-white"
                       : "border border-neutral-200/70 text-neutral-600"
                   }`}
@@ -104,64 +111,141 @@ export default function DashboardSearchPage() {
                   {mode}
                 </button>
               ))}
-              <span className="ml-2 text-neutral-500">Filters</span>
-              {filters.map((filter) => (
-                <button
-                  key={filter}
-                  type="button"
-                  onClick={() => toggleFilter(filter)}
-                  className={`rounded-full px-3 py-1 ${
-                    activeFilters.includes(filter)
-                      ? "bg-neutral-900 text-white"
-                      : "border border-neutral-200/70 text-neutral-600"
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
             </div>
           </div>
-          <div className="mt-6 space-y-3">
-            {results.length === 0 && !isLoading ? (
-              <div className="rounded-2xl border border-dashed border-neutral-200 p-6 text-sm text-neutral-500">
-                No results yet. Run a search to see experiments.
-              </div>
-            ) : null}
-            {results.map((result) => (
-              <div
-                key={result.experiment_id ?? result.summary}
-                className="rounded-2xl border border-neutral-200/70 bg-neutral-50 p-4"
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            {modes.map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setActiveMode(mode)}
+                className={`rounded-full px-3 py-1 ${
+                  activeMode === mode
+                    ? "bg-neutral-900 text-white"
+                    : "border border-neutral-200/70 text-neutral-600"
+                }`}
               >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs uppercase text-neutral-400">
-                      {result.experiment_type ?? "Experiment"}
-                    </p>
-                    <p className="text-sm font-semibold text-neutral-900">
-                      {result.experiment_id ?? "Experiment"}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-neutral-900 px-2 py-1 text-[11px] text-white">
-                      Result
-                    </span>
-                    {result.experiment_id ? (
-                      <a
-                        className="rounded-full border border-neutral-200/70 px-3 py-1 text-[11px] text-neutral-600"
-                        href={`/dashboard/experiments/${result.experiment_id}`}
-                      >
-                        Open
-                      </a>
-                    ) : null}
-                  </div>
-                </div>
-                <p className="mt-2 text-xs text-neutral-500">{result.summary}</p>
-              </div>
+                {mode}
+              </button>
             ))}
+            <span className="ml-2 text-neutral-500">Filters</span>
+            {filters.map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                onClick={() => toggleFilter(filter)}
+                className={`rounded-full px-3 py-1 ${
+                  activeFilters.includes(filter)
+                    ? "bg-neutral-900 text-white"
+                    : "border border-neutral-200/70 text-neutral-600"
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+            {activeFilters.length ? (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="rounded-full border border-neutral-200/70 px-3 py-1 text-neutral-600"
+              >
+                Clear filters
+              </button>
+            ) : null}
           </div>
         </div>
-      </DashboardShell>
-      <SiteFooter />
-    </div>
+        <div className="mt-8 space-y-4">
+          <div className="flex items-center justify-between text-xs text-neutral-500">
+            <span>
+              {hasResults
+                ? `${results.length} results`
+                : hasQuery
+                  ? "No results yet"
+                  : "Start with a search"}
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full border border-neutral-200/70 px-3 py-1">
+                Mode: {activeMode}
+              </span>
+              <span className="rounded-full border border-neutral-200/70 px-3 py-1">
+                Sort: {activeSort}
+              </span>
+            </div>
+          </div>
+          {showEmpty ? (
+            <div className="rounded-2xl border border-dashed border-neutral-200 p-6 text-sm text-neutral-500">
+              {hasQuery
+                ? "No results found. Try adjusting your query or filters."
+                : "No results yet. Run a search to see experiments."}
+            </div>
+          ) : null}
+          {isLoading ? (
+            <div className="grid gap-3">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={`skeleton-${index}`}
+                  className="h-20 animate-pulse rounded-2xl border border-neutral-200/70 bg-neutral-50"
+                />
+              ))}
+            </div>
+          ) : null}
+          {!isLoading
+            ? results.map((result) => {
+                const openHref =
+                  result.kind === "experiments" &&
+                  result.experimentId &&
+                  result.paperId
+                    ? `/dashboard/experiments/${result.paperId}/${result.experimentId}`
+                    : result.kind === "papers" && result.paperId
+                      ? `/dashboard/papers/${result.paperId}`
+                      : result.kind === "sections" &&
+                          result.paperId &&
+                          result.sectionId
+                        ? `/dashboard/sections/${result.paperId}/${result.sectionId}`
+                        : result.kind === "blocks" && result.paperId && result.blockId
+                          ? `/dashboard/blocks/${result.paperId}/${result.blockId}`
+                          : undefined;
+
+                return (
+                  <div
+                    key={`${result.kind}-${result.paperId ?? "np"}-${result.id}`}
+                    className="rounded-2xl border border-neutral-200/70 bg-neutral-50 p-4"
+                  >
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div>
+                        <p className="text-xs uppercase text-neutral-400">
+                          {result.kind}
+                        </p>
+                        <p className="text-sm font-semibold text-neutral-900">
+                          {result.title ?? result.id}
+                        </p>
+                        <p className="mt-1 text-xs text-neutral-500">
+                          {result.paperId ? `Paper: ${result.paperId}` : "Paper: N/A"}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-neutral-900 px-2 py-1 text-[11px] text-white">
+                          {result.tag ?? "Result"}
+                        </span>
+                        {openHref ? (
+                          <Link
+                            className="rounded-full border border-neutral-200/70 px-3 py-1 text-[11px] text-neutral-600"
+                            href={openHref}
+                          >
+                            Open
+                          </Link>
+                        ) : null}
+                      </div>
+                    </div>
+                    <p className="mt-3 text-xs text-neutral-500">
+                      {result.summary ?? "No summary available."}
+                    </p>
+                  </div>
+                );
+              })
+            : null}
+        </div>
+      </div>
+    </>
   );
 }
