@@ -52,7 +52,7 @@ class HBlocksToExperiments:
         _debug_write("stage_a_sections.jsonl", {"paper_id": paper_id, "sections": sections})
         augmentation = self._build_augmentation(sections)
         _debug_write("stage_a_augmentation.jsonl", {"paper_id": paper_id, "augmentation": augmentation})
-        candidates = self._stage_a_candidates(sections)
+        candidates = self._stage_a_candidates(sections, augmentation)
         _debug_write("stage_a_candidates.jsonl", {"paper_id": paper_id, "candidates": candidates})
         experiments = []
         for c in candidates:
@@ -97,10 +97,11 @@ class HBlocksToExperiments:
         finally:
             cluster.shutdown()
 
-    def _stage_a_candidates(self, sections: List[Dict[str, object]]) -> List[Dict[str, object]]:
+    def _stage_a_candidates(self, sections: List[Dict[str, object]], augmentation: Dict[str, object]) -> List[Dict[str, object]]:
         client = self._client()
         payload = {
     "sections": sections,  # list of {section_id, title, path, ...}
+    "augmentation": augmentation,
     "instruction": (
         "TASK: Propose candidate experiments present in THIS paper only.\n"
         "You MUST ground each experiment in the provided sections list.\n\n"
