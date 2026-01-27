@@ -1,20 +1,64 @@
-﻿import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
+import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
 import { CreditBalanceCard } from "@/components/dashboard/credit-balance-card";
-import { mockCreditSummary } from "@/lib/credits/mock";
+import { getCreditSummary } from "@/lib/credits";
+import { authOptions } from "@/auth";
+import { getServerSession } from "next-auth";
+import { connectToDatabase } from "@/lib/mongoose";
+import { User } from "@/models/User";
 
-export default function DashboardCreditsPage() {
+export default async function DashboardCreditsPage() {
+  const session = await getServerSession(authOptions);
+  const email = session?.user?.email;
+
+  if (!email) {
+    return (
+      <>
+        <DashboardTopBar
+          title="Credits"
+          subtitle="Track balances, reservations, and usage receipts."
+        />
+        <div className="rounded-3xl border border-dashed border-neutral-200/70 bg-white p-6 text-sm text-neutral-500 shadow-sm">
+          Sign in to see credit activity.
+        </div>
+      </>
+    );
+  }
+
+  await connectToDatabase();
+  const user = await User.findOne({ email });
+  const summary = user ? await getCreditSummary(user._id) : null;
+
+  if (!summary) {
+    return (
+      <>
+        <DashboardTopBar
+          title="Credits"
+          subtitle="Track balances, reservations, and usage receipts."
+        />
+        <div className="rounded-3xl border border-dashed border-neutral-200/70 bg-white p-6 text-sm text-neutral-500 shadow-sm">
+          No credit account found yet.
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <DashboardTopBar
         title="Credits"
         subtitle="Track balances, reservations, and usage receipts."
       />
-      <CreditBalanceCard summary={mockCreditSummary} />
+      <CreditBalanceCard summary={summary} />
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-neutral-900">Ledger</h3>
           <div className="mt-4 space-y-3 text-xs text-neutral-600">
-            {mockCreditSummary.recentLedger.map((entry) => (
+            {summary.recentLedger.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-neutral-200 p-4 text-sm text-neutral-500">
+                No ledger activity yet.
+              </div>
+            ) : null}
+            {summary.recentLedger.map((entry) => (
               <div
                 key={entry.id}
                 className="rounded-2xl border border-neutral-100 bg-neutral-50 p-3"
@@ -44,7 +88,12 @@ export default function DashboardCreditsPage() {
             Usage receipts
           </h3>
           <div className="mt-4 space-y-3 text-xs text-neutral-600">
-            {mockCreditSummary.recentReceipts.map((receipt) => (
+            {summary.recentReceipts.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-neutral-200 p-4 text-sm text-neutral-500">
+                No usage receipts yet.
+              </div>
+            ) : null}
+            {summary.recentReceipts.map((receipt) => (
               <div
                 key={receipt.requestId}
                 className="rounded-2xl border border-neutral-100 bg-neutral-50 p-3"

@@ -4,6 +4,7 @@ import GitHub from "next-auth/providers/github";
 
 import { connectToDatabase } from "./lib/mongoose";
 import { User } from "./models/User";
+import { initCreditAccountForUser } from "./lib/credits";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -30,15 +31,30 @@ export const authOptions: NextAuthOptions = {
       }
 
       await connectToDatabase();
-      await User.findOneAndUpdate(
-        { email: user.email },
-        {
+      const existingUser = await User.findOne({ email: user.email });
+
+      const updatedUser =
+        existingUser ??
+        (await User.create({
           email: user.email,
           name: user.name ?? "",
           image: user.image ?? "",
-        },
-        { upsert: true, new: true }
-      );
+        }));
+
+      if (existingUser) {
+        existingUser.name = user.name ?? existingUser.name ?? "";
+        existingUser.image = user.image ?? existingUser.image ?? "";
+        await existingUser.save();
+      }
+
+      if (!updatedUser.creditAccountId) {
+        const creditAccount = await initCreditAccountForUser(updatedUser._id);
+        updatedUser.creditAccountId = creditAccount._id;
+        if (!updatedUser.month_plan_accredated) {
+          updatedUser.month_plan_accredated = new Date();
+        }
+        await updatedUser.save();
+      }
 
       return true;
     },

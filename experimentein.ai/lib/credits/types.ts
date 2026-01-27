@@ -1,7 +1,9 @@
-﻿export type CreditAccount = {
+export type CreditAccount = {
+  id?: string;
   userId: string;
   balance: number;
   reserved: number;
+  month_plan_accredated?: string | null;
 };
 
 export type CreditLedgerEntry = {
