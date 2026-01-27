@@ -143,3 +143,43 @@ export async function getCreditSummary(
     })),
   };
 }
+
+export async function getCreditUsageSeries(
+  userId: mongoose.Types.ObjectId,
+  days = 7
+) {
+  await connectToDatabase();
+
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - (days - 1));
+
+  const ledger = await CreditLog.find({
+    userId,
+    createdAt: { $gte: start, $lte: end },
+  })
+    .sort({ createdAt: 1 })
+    .lean();
+
+  const labels: string[] = [];
+  const data: number[] = [];
+  const cursor = new Date(start);
+
+  while (cursor <= end) {
+    const label = cursor.toISOString().slice(0, 10);
+    labels.push(label);
+    data.push(0);
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  ledger.forEach((entry) => {
+    const key = entry.createdAt?.toISOString().slice(0, 10);
+    if (!key) return;
+    const index = labels.indexOf(key);
+    if (index >= 0) {
+      data[index] += Math.abs(entry.delta);
+    }
+  });
+
+  return { labels, data };
+}

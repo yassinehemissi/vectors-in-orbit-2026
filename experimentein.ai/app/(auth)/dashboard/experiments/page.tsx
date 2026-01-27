@@ -1,117 +1,103 @@
-﻿"use client";
-
-import { useState } from "react";
 import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
+import { authOptions } from "@/auth";
+import { getServerSession } from "next-auth";
+import { connectToDatabase } from "@/lib/mongoose";
+import { User } from "@/models/User";
+import { listRecentActivity } from "@/storage/activity";
+import { getExperimentByKey } from "@/storage/actions";
+import Link from "next/link";
 
-const experiments = [
-  {
-    paperId: "paper_001",
-    experimentId: "exp_001",
-    title: "Protein stability shift",
-    status: "High confidence",
-    missing: "Dataset",
-  },
-  {
-    paperId: "paper_002",
-    experimentId: "exp_002",
-    title: "CRISPR activation rescue",
-    status: "Medium confidence",
-    missing: "Baselines",
-  },
-  {
-    paperId: "paper_003",
-    experimentId: "exp_003",
-    title: "Microfluidics kinetics",
-    status: "Low confidence",
-    missing: "Ablations",
-  },
-];
+type ExperimentCard = {
+  paperId: string;
+  experimentId: string;
+  title: string;
+  detail?: string;
+};
 
-const filters = [
-  "All",
-  "High confidence",
-  "Missing fields",
-  "Needs review",
-] as const;
-const sortModes = ["Updated", "Confidence"] as const;
+export default async function DashboardExperimentsPage() {
+  const session = await getServerSession(authOptions);
+  const email = session?.user?.email;
+  let experiments: ExperimentCard[] = [];
 
-type Filter = (typeof filters)[number];
+  if (email) {
+    await connectToDatabase();
+    const user = await User.findOne({ email });
 
-type SortMode = (typeof sortModes)[number];
+    if (user) {
+      const activity = await listRecentActivity(user._id, 12, "experiment_view");
+      const unique = new Map<string, ExperimentCard>();
 
-export default function DashboardExperimentsPage() {
-  const [activeFilter, setActiveFilter] = useState<Filter>("All");
-  const [activeSort, setActiveSort] = useState<SortMode>("Updated");
+      for (const item of activity) {
+        const meta = item.metadata as
+          | { paperId?: string; experimentId?: string }
+          | undefined;
+        const paperId = meta?.paperId;
+        const experimentId = meta?.experimentId;
+        if (!paperId || !experimentId) continue;
+        const key = `${paperId}:${experimentId}`;
+        if (unique.has(key)) continue;
+        const experiment = await getExperimentByKey(paperId, experimentId);
+        if (!experiment) continue;
+        unique.set(key, {
+          paperId,
+          experimentId,
+          title: experiment.title ?? experiment.experiment_id ?? "Experiment",
+          detail: item.detail,
+        });
+      }
+
+      experiments = Array.from(unique.values());
+    }
+  }
 
   return (
     <>
       <DashboardTopBar
         title="Experiments"
-        subtitle="Organize and review experiment cards."
+        subtitle="Recent experiment activity and saved work."
       />
       <div className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-wrap gap-2 text-xs">
-            {filters.map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                onClick={() => setActiveFilter(filter)}
-                className={`rounded-full px-3 py-1 ${
-                  activeFilter === filter
-                    ? "bg-neutral-900 text-white"
-                    : "border border-neutral-200/70 text-neutral-600"
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs uppercase text-neutral-400">Recent activity</p>
+            <h3 className="mt-2 text-lg font-semibold text-neutral-900">
+              Recently viewed experiments
+            </h3>
           </div>
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-neutral-500">Sort by</span>
-            {sortModes.map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => setActiveSort(mode)}
-                className={`rounded-full px-3 py-1 ${
-                  activeSort === mode
-                    ? "bg-neutral-900 text-white"
-                    : "border border-neutral-200/70 text-neutral-600"
-                }`}
-              >
-                {mode}
-              </button>
-            ))}
-          </div>
+          <Link className="btn-secondary text-xs" href="/dashboard/search">
+            New search
+          </Link>
         </div>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          {experiments.map((experiment) => (
-            <div
-              key={`${experiment.paperId}-${experiment.experimentId}`}
-              className="rounded-3xl border border-neutral-200/70 bg-neutral-50 p-6"
-            >
-              <p className="text-xs uppercase text-neutral-400">Experiment</p>
-              <h3 className="mt-2 text-lg font-semibold text-neutral-900">
-                {experiment.title}
-              </h3>
-              <div className="mt-3 flex items-center gap-3 text-xs text-neutral-500">
-                <span className="rounded-full bg-neutral-900 px-2 py-1 text-white">
-                  {experiment.status}
-                </span>
-                <span className="rounded-full border border-neutral-200/70 px-2 py-1">
-                  Missing: {experiment.missing}
-                </span>
+        {experiments.length === 0 ? (
+          <div className="mt-4 rounded-2xl border border-dashed border-neutral-200 p-6 text-sm text-neutral-500">
+            No recent experiment activity yet.
+          </div>
+        ) : (
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            {experiments.map((experiment) => (
+              <div
+                key={`${experiment.paperId}-${experiment.experimentId}`}
+                className="rounded-3xl border border-neutral-200/70 bg-neutral-50 p-6"
+              >
+                <p className="text-xs uppercase text-neutral-400">Experiment</p>
+                <h3 className="mt-2 text-lg font-semibold text-neutral-900">
+                  {experiment.title}
+                </h3>
+                {experiment.detail ? (
+                  <p className="mt-2 text-xs text-neutral-500">
+                    {experiment.detail}
+                  </p>
+                ) : null}
+                <Link
+                  className="btn-secondary mt-4 inline-flex"
+                  href={`/dashboard/experiments/${experiment.paperId}/${experiment.experimentId}`}
+                >
+                  Open card
+                </Link>
               </div>
-              <a
-                className="btn-secondary mt-4 inline-flex"
-                href={`/dashboard/experiments/${experiment.paperId}/${experiment.experimentId}`}
-              >
-                Open card
-              </a>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );

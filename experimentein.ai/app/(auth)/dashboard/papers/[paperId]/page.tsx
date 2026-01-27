@@ -1,6 +1,12 @@
 import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
 import { getPaperById } from "@/storage/actions";
 import Link from "next/link";
+import { ResearchSaveButton } from "@/components/dashboard/research-save";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth";
+import { connectToDatabase } from "@/lib/mongoose";
+import { User } from "@/models/User";
+import { logActivity } from "@/storage/activity";
 
 interface PaperPageProps {
   params: { paperId: string };
@@ -31,6 +37,26 @@ export default async function PaperPage({ params }: PaperPageProps) {
         </div>
       </>
     );
+  }
+
+  try {
+    const session = await getServerSession(authOptions);
+    const email = session?.user?.email;
+    if (email) {
+      await connectToDatabase();
+      const user = await User.findOne({ email });
+      if (user) {
+        await logActivity({
+          userId: user._id,
+          title: "Viewed paper",
+          detail: paper.title ?? paper.paper_id ?? "Paper",
+          type: "paper_view",
+          metadata: { paperId: paper.paper_id },
+        });
+      }
+    }
+  } catch {
+    // do not block page render on activity logging
   }
 
   return (
@@ -82,6 +108,7 @@ export default async function PaperPage({ params }: PaperPageProps) {
           <div className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm">
             <p className="text-xs uppercase text-neutral-400">Actions</p>
             <div className="mt-4 flex flex-col gap-3">
+              <ResearchSaveButton kind="paper" itemId={paper.paper_id} />
               <Link className="btn-secondary" href="/dashboard/search">
                 Search related content
               </Link>

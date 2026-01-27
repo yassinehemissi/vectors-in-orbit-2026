@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
 import { searchContent } from "@/storage/actions";
 import Link from "next/link";
+import { ResearchSaveButton } from "@/components/dashboard/research-save";
 
 const modes = ["Papers", "Sections", "Blocks", "Experiments"] as const;
 const sortModes = ["Relevance", "Recent", "Confidence"] as const;
@@ -234,6 +235,29 @@ export default function DashboardSearchPage() {
                           >
                             Open
                           </Link>
+                        ) : null}
+                        {result.kind && result.id ? (
+                          <ResearchSaveButton
+                            kind={
+                              result.kind === "experiments"
+                                ? "experiment"
+                                : result.kind === "papers"
+                                  ? "paper"
+                                  : result.kind === "sections"
+                                    ? "section"
+                                    : "block"
+                            }
+                            itemId={
+                              result.kind === "experiments"
+                                ? result.experimentId ?? result.id
+                                : result.kind === "papers"
+                                  ? result.paperId ?? result.id
+                                  : result.kind === "sections"
+                                    ? result.sectionId ?? result.id
+                                    : result.blockId ?? result.id
+                            }
+                            paperId={result.paperId}
+                          />
                         ) : null}
                       </div>
                     </div>

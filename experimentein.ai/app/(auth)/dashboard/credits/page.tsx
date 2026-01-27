@@ -1,10 +1,11 @@
 import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
 import { CreditBalanceCard } from "@/components/dashboard/credit-balance-card";
-import { getCreditSummary } from "@/lib/credits";
+import { getCreditSummary, getCreditUsageSeries } from "@/lib/credits";
 import { authOptions } from "@/auth";
 import { getServerSession } from "next-auth";
 import { connectToDatabase } from "@/lib/mongoose";
 import { User } from "@/models/User";
+import { UsageChart } from "@/components/dashboard/usage-chart";
 
 export default async function DashboardCreditsPage() {
   const session = await getServerSession(authOptions);
@@ -27,6 +28,7 @@ export default async function DashboardCreditsPage() {
   await connectToDatabase();
   const user = await User.findOne({ email });
   const summary = user ? await getCreditSummary(user._id) : null;
+  const usageSeries = user ? await getCreditUsageSeries(user._id, 7) : null;
 
   if (!summary) {
     return (
@@ -49,6 +51,11 @@ export default async function DashboardCreditsPage() {
         subtitle="Track balances, reservations, and usage receipts."
       />
       <CreditBalanceCard summary={summary} />
+      <UsageChart
+        title="Credit usage"
+        data={usageSeries?.data}
+        labels={usageSeries?.labels}
+      />
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm">
           <h3 className="text-lg font-semibold text-neutral-900">Ledger</h3>
