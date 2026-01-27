@@ -41,6 +41,7 @@ export default function DashboardSearchPage() {
     setIsLoading(true);
     try {
       const data = (await searchExperiments(query)) as ExperimentRow[];
+      console.log(data);
       setResults(data);
     } finally {
       setIsLoading(false);
@@ -140,9 +141,19 @@ export default function DashboardSearchPage() {
                       {result.experiment_id ?? "Experiment"}
                     </p>
                   </div>
-                  <span className="rounded-full bg-neutral-900 px-2 py-1 text-[11px] text-white">
-                    Result
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-neutral-900 px-2 py-1 text-[11px] text-white">
+                      Result
+                    </span>
+                    {result.experiment_id ? (
+                      <a
+                        className="rounded-full border border-neutral-200/70 px-3 py-1 text-[11px] text-neutral-600"
+                        href={`/dashboard/experiments/${result.experiment_id}`}
+                      >
+                        Open
+                      </a>
+                    ) : null}
+                  </div>
                 </div>
                 <p className="mt-2 text-xs text-neutral-500">{result.summary}</p>
               </div>

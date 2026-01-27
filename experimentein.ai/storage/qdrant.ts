@@ -1,4 +1,8 @@
-﻿const QDRANT_URL = process.env.QDRANT_URL;
+﻿'use server';
+
+import { QdrantClient } from "@qdrant/js-client-rest";
+
+const QDRANT_URL = process.env.QDRANT_URL;
 const QDRANT_API_KEY = process.env.QDRANT_API_KEY;
 
 if (!QDRANT_URL || !QDRANT_API_KEY) {
@@ -11,29 +15,21 @@ export type QdrantSearchResult = {
   payload?: Record<string, unknown>;
 };
 
+const client = new QdrantClient({
+  url: QDRANT_URL,
+  apiKey: QDRANT_API_KEY,
+});
+
 export async function qdrantSearch(params: {
   collection: string;
   vector: number[];
   limit?: number;
 }) {
-  const response = await fetch(`${QDRANT_URL}/collections/${params.collection}/points/search`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "api-key": QDRANT_API_KEY,
-    },
-    body: JSON.stringify({
-      vector: params.vector,
-      limit: params.limit ?? 10,
-      with_payload: true,
-    }),
+  const response = await client.search(params.collection, {
+    vector: params.vector,
+    limit: params.limit ?? 10,
+    with_payload: true,
   });
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Qdrant search failed: ${text}`);
-  }
-
-  const data = (await response.json()) as { result: QdrantSearchResult[] };
-  return data.result ?? [];
+  console.log(response)
+  return (response ?? []) as QdrantSearchResult[];
 }

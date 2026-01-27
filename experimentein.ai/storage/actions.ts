@@ -1,6 +1,6 @@
 ﻿"use server";
 
-import { astraDb } from "./astra";
+import { getAstraClient } from "./astra";
 import { qdrantSearch } from "./qdrant";
 import { embedText } from "./embeddings";
 
@@ -24,10 +24,22 @@ export async function searchExperiments(query: string) {
     return [];
   }
 
-  const experiments = await astraDb
+  const experiments = await (await getAstraClient())
     .collection("experiments")
     .find({ experiment_id: { $in: ids } })
     .toArray();
 
   return experiments;
+}
+
+export async function getExperimentById(experimentId: string) {
+  if (!experimentId) {
+    return null;
+  }
+
+  const experiment = await (await getAstraClient())
+    .collection("experiments")
+    .findOne({ experiment_id: experimentId });
+
+  return experiment;
 }
