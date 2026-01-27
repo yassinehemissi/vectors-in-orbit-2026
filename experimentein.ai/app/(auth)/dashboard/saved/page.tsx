@@ -1,7 +1,4 @@
-﻿import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
+﻿import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
 
 const savedCollections = [
   {

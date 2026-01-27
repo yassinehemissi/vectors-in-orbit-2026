@@ -29,6 +29,7 @@ export async function embedText(text: string) {
 
   const data = (await response.json()) as {
     data: Array<{ embedding: number[] }>;
+    usage?: Record<string, unknown>;
   };
 
   const embedding = data.data[0]?.embedding ?? [];
@@ -37,4 +38,39 @@ export async function embedText(text: string) {
   }
 
   return embedding;
+}
+
+export async function embedTextWithUsage(text: string) {
+  if (!text.trim()) {
+    return { embedding: [], usage: null };
+  }
+
+  const response = await fetch("https://openrouter.ai/api/v1/embeddings", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: OPENROUTER_EMBEDDING_MODEL,
+      input: text,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Embedding failed: ${errorText}`);
+  }
+
+  const data = (await response.json()) as {
+    data: Array<{ embedding: number[] }>;
+    usage?: Record<string, unknown>;
+  };
+
+  const embedding = data.data[0]?.embedding ?? [];
+  if (embedding.length !== 768) {
+    throw new Error(`Embedding size mismatch: ${embedding.length}`);
+  }
+
+  return { embedding, usage: data.usage ?? null };
 }

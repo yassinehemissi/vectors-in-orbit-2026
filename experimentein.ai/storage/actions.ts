@@ -2,7 +2,13 @@
 
 import { getAstraClient } from "./astra";
 import { qdrantSearch } from "./qdrant";
-import { embedText } from "./embeddings";
+import { embedTextWithUsage } from "./embeddings";
+import { authOptions } from "@/auth";
+import { getServerSession } from "next-auth";
+import { connectToDatabase } from "@/lib/mongoose";
+import { User } from "@/models/User";
+import { recordUsageReceipt } from "@/lib/credits/usage";
+import { resolveUsageTokens } from "@/lib/usage/tokens";
 
 export type SearchMode = "papers" | "sections" | "blocks" | "experiments";
 
@@ -38,10 +44,48 @@ export async function searchContent(
   }
 
   let vector: number[] = [];
+  let usage: Record<string, unknown> | null = null;
   try {
-    vector = await embedText(query);
+    const embedded = await embedTextWithUsage(query);
+    vector = embedded.embedding;
+    usage = embedded.usage;
   } catch {
     return [];
+  }
+
+  try {
+    const session = await getServerSession(authOptions);
+    const email = session?.user?.email;
+    if (email) {
+      await connectToDatabase();
+      const user = await User.findOne({ email });
+      if (user?.creditAccountId) {
+        const tokenUsage = resolveUsageTokens({
+          providerUsage: usage,
+          input: query,
+        });
+        const creditsCharged = Math.max(
+          1,
+          Math.ceil(tokenUsage.totalTokens / 1000),
+        );
+        await recordUsageReceipt({
+          userId: user._id,
+          creditAccountId: user.creditAccountId,
+          actionType: "search_embed",
+          model: process.env.OPENROUTER_EMBEDDING_MODEL ?? "openrouter-embedding",
+          inputTokens: tokenUsage.inputTokens,
+          outputTokens: tokenUsage.outputTokens,
+          creditsCharged,
+          requestId: `search-${Date.now()}`,
+          metadata: {
+            mode,
+            estimated: tokenUsage.estimated,
+          },
+        });
+      }
+    }
+  } catch {
+    // usage logging should not block search
   }
 
   const { collection, idKey } = modeMap[mode];
