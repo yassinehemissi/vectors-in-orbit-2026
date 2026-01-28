@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-/opt/grobid/bin/grobid-service &
+echo "[start] launching GROBID..."
+/opt/grobid/grobid-service/bin/grobid-service &
 
-python3 - <<'PY'
-import os
-import time
-import requests
+echo "[start] waiting for GROBID readiness..."
+for i in {1..60}; do
+  if curl -fsS "http://127.0.0.1:8070/api/isalive" >/dev/null 2>&1; then
+    echo "[start] GROBID is alive."
+    break
+  fi
+  sleep 1
+done
 
-url = os.environ.get("GROBID_URL", "http://127.0.0.1:8070") + "/api/isalive"
-for _ in range(60):
-    try:
-        if requests.get(url, timeout=2).ok:
-            print("GROBID ready")
-            break
-    except Exception:
-        pass
-    time.sleep(2)
-PY
+curl -fsS "http://127.0.0.1:8070/api/isalive" >/dev/null 2>&1 || {
+  echo "[error] GROBID did not become ready in time."
+  exit 1
+}
 
+echo "[start] launching API..."
 exec python3 /app/app.py
