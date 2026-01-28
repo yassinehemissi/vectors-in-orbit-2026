@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
-import { searchContent } from "@/storage/actions";
+import { searchContent } from "@/storage/search";
 import Link from "next/link";
 import { ResearchSaveButton } from "@/components/dashboard/research-save";
 

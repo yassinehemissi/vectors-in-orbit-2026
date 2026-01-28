@@ -1,3 +1,5 @@
+"use server"
+
 import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/mongoose";
 import { Research } from "@/models/Research";
@@ -127,3 +129,4 @@ export async function listResearchItemsGrouped(
     }
   );
 }
+

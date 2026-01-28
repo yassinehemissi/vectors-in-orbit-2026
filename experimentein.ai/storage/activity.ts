@@ -1,3 +1,5 @@
+"use server";
+
 import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/mongoose";
 import { ActivityLog } from "@/models/ActivityLog";

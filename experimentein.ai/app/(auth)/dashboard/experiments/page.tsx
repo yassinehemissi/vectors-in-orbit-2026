@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { connectToDatabase } from "@/lib/mongoose";
 import { User } from "@/models/User";
 import { listRecentActivity } from "@/storage/activity";
-import { getExperimentByKey } from "@/storage/actions";
+import { getExperimentByKey } from "@/storage/experiments";
 import Link from "next/link";
 
 type ExperimentCard = {
@@ -38,11 +38,22 @@ export default async function DashboardExperimentsPage() {
         if (unique.has(key)) continue;
         const experiment = await getExperimentByKey(paperId, experimentId);
         if (!experiment) continue;
+        let fallbackTitle = experiment.title ?? experiment.experiment_id ?? "Experiment";
+        let fallbackDetail: string | undefined;
+        if (typeof experiment.experiment_json === "string") {
+          try {
+            const parsed = JSON.parse(experiment.experiment_json) as any;
+            fallbackTitle = parsed?.title?.value ?? fallbackTitle;
+            fallbackDetail = parsed?.description ?? undefined;
+          } catch {
+            // ignore parse errors
+          }
+        }
         unique.set(key, {
           paperId,
           experimentId,
-          title: experiment.title ?? experiment.experiment_id ?? "Experiment",
-          detail: item.detail,
+          title: fallbackTitle,
+          detail: item.detail || fallbackDetail,
         });
       }
 

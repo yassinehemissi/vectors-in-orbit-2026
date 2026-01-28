@@ -2,9 +2,9 @@
 import Google from "next-auth/providers/google";
 import GitHub from "next-auth/providers/github";
 
-import { connectToDatabase } from "./lib/mongoose";
-import { User } from "./models/User";
-import { initCreditAccountForUser } from "./lib/credits";
+import { connectToDatabase } from "@/lib/mongoose";
+import { User } from "@/models/User";
+import { initCreditAccountForUser } from "@/lib/credits";
 
 export const authOptions: NextAuthOptions = {
   providers: [

@@ -1,5 +1,5 @@
 import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
-import { getPaperById } from "@/storage/actions";
+import { getPaperById } from "@/storage/papers";
 import Link from "next/link";
 import { ResearchSaveButton } from "@/components/dashboard/research-save";
 import { getServerSession } from "next-auth";
@@ -112,8 +112,11 @@ export default async function PaperPage({ params }: PaperPageProps) {
               <Link className="btn-secondary" href="/dashboard/search">
                 Search related content
               </Link>
-              <Link className="btn-primary" href="/dashboard/experiments">
-                Explore experiments
+              <Link
+                className="btn-primary"
+                href={`/dashboard/papers/${paper.paper_id}/experiments`}
+              >
+                Related experiments
               </Link>
             </div>
           </div>

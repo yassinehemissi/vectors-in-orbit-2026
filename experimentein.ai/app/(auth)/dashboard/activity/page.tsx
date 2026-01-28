@@ -30,6 +30,7 @@ export default async function DashboardActivityPage({
 }: {
   searchParams?: { page?: string };
 }) {
+  searchParams = await searchParams
   const session = await getServerSession(authOptions);
   const email = session?.user?.email;
 

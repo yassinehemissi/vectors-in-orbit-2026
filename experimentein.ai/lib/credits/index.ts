@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import type { CreditSummary } from "./types";
+import type { CreditSummary } from "@/lib/credits/types";
 import { connectToDatabase } from "@/lib/mongoose";
 import { CreditAccount } from "@/models/CreditAccount";
 import { CreditLog } from "@/models/CreditLog";

@@ -1,6 +1,6 @@
 import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
 import { ExperimentDetailClient } from "@/components/dashboard/experiment-detail";
-import { getExperimentByKey } from "@/storage/actions";
+import { getExperimentByKey } from "@/storage/experiments";
 import Link from "next/link";
 import { ResearchSaveButton } from "@/components/dashboard/research-save";
 import { getServerSession } from "next-auth";
@@ -33,12 +33,13 @@ export default async function ExperimentDetailPage({
           value?: string;
           confidence?: number;
           evidence_block_ids?: string[];
+          evidence?: string[];
         };
         return {
           label,
           value: parsed.value ?? "",
           confidence: parsed.confidence,
-          evidenceIds: parsed.evidence_block_ids ?? [],
+          evidenceIds: parsed.evidence_block_ids ?? parsed.evidence ?? [],
         };
       } catch {
         return { label, value: rawValue, confidence: undefined, evidenceIds: [] };
@@ -94,15 +95,33 @@ export default async function ExperimentDetailPage({
     // do not block page render on activity logging
   }
 
+  const experimentJson = (() => {
+    if (!experiment.experiment_json) return null;
+    if (typeof experiment.experiment_json !== "string") return null;
+    try {
+      return JSON.parse(experiment.experiment_json) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
+  })();
+
+  const getValue = (key: string, fallback?: string | null) => {
+    const fromJson = experimentJson?.[key];
+    if (fromJson && typeof fromJson === "object") {
+      return JSON.stringify(fromJson);
+    }
+    return fallback ?? "";
+  };
+
   const fields = [
-    parseField("Goal", experiment.goal),
-    parseField("Setup", experiment.setup),
-    parseField("Dataset", experiment.dataset),
-    parseField("Metrics", experiment.metrics),
-    parseField("Results", experiment.results),
-    parseField("Baselines", experiment.baselines),
-    parseField("Ablations", experiment.ablations),
-    parseField("Limitations", experiment.limitations),
+    parseField("Goal", getValue("goal", experiment.goal)),
+    parseField("Setup", getValue("setup", experiment.setup)),
+    parseField("Dataset", getValue("dataset", experiment.dataset)),
+    parseField("Metrics", getValue("metrics", experiment.metrics)),
+    parseField("Results", getValue("results", experiment.results)),
+    parseField("Baselines", getValue("baselines", experiment.baselines)),
+    parseField("Ablations", getValue("ablations", experiment.ablations)),
+    parseField("Limitations", getValue("limitations", experiment.limitations)),
   ];
 
   const evidenceCount = new Set(
@@ -123,7 +142,10 @@ export default async function ExperimentDetailPage({
               {experiment.title ?? experiment.experiment_id ?? "Experiment"}
             </h2>
             <p className="mt-4 text-sm leading-7 text-neutral-600">
-              {experiment.summary ?? "No summary available yet."}
+              {experiment.summary ??
+                experiment.description ??
+                experimentJson?.description ??
+                "No summary available yet."}
             </p>
           </div>
           <div>

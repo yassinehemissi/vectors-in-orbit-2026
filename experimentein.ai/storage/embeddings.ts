@@ -1,5 +1,10 @@
-﻿const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+"use server"
+
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_EMBEDDING_MODEL = process.env.OPENROUTER_EMBEDDING_MODEL;
+const OPENROUTER_EMBEDDING_DIM = Number(
+  process.env.OPENROUTER_EMBEDDING_DIM ?? 1024
+);
 
 if (!OPENROUTER_API_KEY || !OPENROUTER_EMBEDDING_MODEL) {
   throw new Error("OpenRouter embedding env vars are missing.");
@@ -33,8 +38,10 @@ export async function embedText(text: string) {
   };
 
   const embedding = data.data[0]?.embedding ?? [];
-  if (embedding.length !== 768) {
-    throw new Error(`Embedding size mismatch: ${embedding.length}`);
+  if (embedding.length !== OPENROUTER_EMBEDDING_DIM) {
+    throw new Error(
+      `Embedding size mismatch: ${embedding.length} (expected ${OPENROUTER_EMBEDDING_DIM})`
+    );
   }
 
   return embedding;
@@ -68,9 +75,12 @@ export async function embedTextWithUsage(text: string) {
   };
 
   const embedding = data.data[0]?.embedding ?? [];
-  if (embedding.length !== 768) {
-    throw new Error(`Embedding size mismatch: ${embedding.length}`);
+  if (embedding.length !== OPENROUTER_EMBEDDING_DIM) {
+    throw new Error(
+      `Embedding size mismatch: ${embedding.length} (expected ${OPENROUTER_EMBEDDING_DIM})`
+    );
   }
 
   return { embedding, usage: data.usage ?? null };
 }
+

@@ -23,7 +23,7 @@ export async function connectToDatabase() {
   }
 
   if (!globalForMongoose.mongoose.promise) {
-    globalForMongoose.mongoose.promise = mongoose.connect(MONGODB_URI, {
+    globalForMongoose.mongoose.promise = mongoose.connect(process.env.MONGODB_URI as string, {
       bufferCommands: false,
     });
   }

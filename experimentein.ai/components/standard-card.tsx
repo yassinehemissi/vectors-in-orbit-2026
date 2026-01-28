@@ -1,5 +1,5 @@
 ﻿import type { ReactNode } from "react";
-import { GradientHeader } from "./gradient-header";
+import { GradientHeader } from "@/components/gradient-header";
 
 interface StandardCardProps {
   title: string;

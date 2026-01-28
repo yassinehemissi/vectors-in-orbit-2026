@@ -65,7 +65,7 @@ export default async function DashboardCreditsPage() {
                 No ledger activity yet.
               </div>
             ) : null}
-            {summary.recentLedger.map((entry) => (
+            {summary.recentLedger.slice(0, 3).map((entry) => (
               <div
                 key={entry.id}
                 className="rounded-2xl border border-neutral-100 bg-neutral-50 p-3"
@@ -100,7 +100,7 @@ export default async function DashboardCreditsPage() {
                 No usage receipts yet.
               </div>
             ) : null}
-            {summary.recentReceipts.map((receipt) => (
+            {summary.recentReceipts.slice(0, 3).map((receipt) => (
               <div
                 key={receipt.requestId}
                 className="rounded-2xl border border-neutral-100 bg-neutral-50 p-3"

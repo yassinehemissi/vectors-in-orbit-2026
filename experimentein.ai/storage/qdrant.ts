@@ -1,4 +1,4 @@
-﻿'use server';
+"use server";
 
 import { QdrantClient } from "@qdrant/js-client-rest";
 
@@ -33,3 +33,4 @@ export async function qdrantSearch(params: {
   console.log(response)
   return (response ?? []) as QdrantSearchResult[];
 }
+

@@ -1,4 +1,6 @@
-﻿"use client";
+"use client";
+
+export const dynamic = "force-dynamic";
 
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -113,7 +115,10 @@ export default function SignInPage() {
             </div>
 
             <p className="mt-6 text-center text-xs text-neutral-500">
-              New here? <a href="/sign-up" className="text-neutral-900">Create an account</a>
+              New here?{" "}
+              <a href="/sign-up" className="text-neutral-900">
+                Create an account
+              </a>
             </p>
           </div>
         </div>

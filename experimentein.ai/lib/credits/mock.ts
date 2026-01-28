@@ -1,4 +1,4 @@
-﻿import type { CreditSummary } from "./types";
+﻿import type { CreditSummary } from "@/lib/credits/types";
 
 export const mockCreditSummary: CreditSummary = {
   account: {

@@ -1,5 +1,5 @@
 import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
-import { getBlockById } from "@/storage/actions";
+import { getBlockById } from "@/storage/blocks";
 import Link from "next/link";
 import { ResearchSaveButton } from "@/components/dashboard/research-save";
 import { getServerSession } from "next-auth";
