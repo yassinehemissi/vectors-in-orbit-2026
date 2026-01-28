@@ -15,11 +15,24 @@ def health():
 
 @app.post("/process")
 def process_pdf():
+    print("process_pdf: request received")
     if "file" not in request.files:
+        print("process_pdf: missing file field")
         return jsonify({"error": "file field required"}), 400
+
+    try:
+        print(f"process_pdf: checking grobid at {GROBID_URL}/api/isalive")
+        alive = requests.get(f"{GROBID_URL}/api/isalive", timeout=2)
+        if not alive.ok:
+            print(f"process_pdf: grobid not ready status={alive.status_code}")
+            return jsonify({"error": "grobid_not_ready"}), 503
+    except requests.RequestException as exc:
+        print(f"process_pdf: grobid unreachable error={exc}")
+        return jsonify({"error": "grobid_unreachable", "details": str(exc)}), 503
 
     pdf = request.files["file"]
     if not pdf.filename:
+        print("process_pdf: empty filename")
         return jsonify({"error": "empty filename"}), 400
 
     files = {"input": (pdf.filename, pdf.stream, "application/pdf")}
@@ -33,6 +46,7 @@ def process_pdf():
     }
 
     try:
+        print("process_pdf: calling grobid processFulltextDocument")
         resp = requests.post(
             f"{GROBID_URL}/api/processFulltextDocument",
             files=files,
@@ -40,8 +54,10 @@ def process_pdf():
             timeout=300,
         )
     except requests.RequestException as exc:
+        print(f"process_pdf: grobid request failed error={exc}")
         return jsonify({"error": "grobid_unreachable", "details": str(exc)}), 502
 
+    print(f"process_pdf: grobid response status={resp.status_code} length={len(resp.text)}")
     return Response(resp.text, status=resp.status_code, content_type="application/xml")
 
 
