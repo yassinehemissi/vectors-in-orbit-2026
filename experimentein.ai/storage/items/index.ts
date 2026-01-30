@@ -20,7 +20,7 @@ export function parseItemJson(raw?: unknown) {
 export function getItemTitle(row: Record<string, any>) {
   if (row?.label) return row.label as string;
   const parsed = parseItemJson(row?.item_json);
-  return parsed?.label ?? row?.item_id ?? "Item";
+  return parsed?.label ?? "Item";
 }
 
 export function getItemSummary(row: Record<string, any>) {

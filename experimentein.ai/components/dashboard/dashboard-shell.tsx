@@ -16,7 +16,6 @@ export function DashboardShell({ children }: DashboardShellProps) {
     () => [
       { label: "Overview", href: "/dashboard" },
       { label: "Search", href: "/dashboard/search" },
-      { label: "Experiments", href: "/dashboard/experiments" },
       { label: "Items", href: "/dashboard/items" },
       { label: "Activity", href: "/dashboard/activity" },
       { label: "Research", href: "/dashboard/research" },

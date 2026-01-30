@@ -2,7 +2,17 @@ import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
 import { ResearchSaveButton } from "@/components/dashboard/research-save";
 import { getItemByKey, getItemSummary, getItemTitle, parseItemJson } from "@/storage/items";
 import { getBlocksByIds } from "@/storage/blocks";
+import { getPaperUploads } from "@/storage/papers-data";
+import { EvidenceBlocksList } from "@/components/dashboard/evidence-blocks";
 import Link from "next/link";
+import type { Metadata } from "next";
+import { getPaperById } from "@/storage/papers";
+
+const kindLabel = (kind?: string) => {
+  if (!kind) return "Item";
+  if (kind === "experiment") return "Study";
+  return kind.replace(/_/g, " ");
+};
 
 export default async function ItemDetailPage({
   params,
@@ -36,6 +46,7 @@ export default async function ItemDetailPage({
   const blocks = sourceBlocks.length
     ? await getBlocksByIds(item.paper_id, sourceBlocks)
     : [];
+  const uploads = await getPaperUploads(item.paper_id);
 
   return (
     <>
@@ -53,28 +64,13 @@ export default async function ItemDetailPage({
           </div>
           <div className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm">
             <p className="text-xs uppercase text-neutral-400">Evidence blocks</p>
-            {blocks.length === 0 ? (
-              <div className="mt-4 rounded-2xl border border-dashed border-neutral-200 p-6 text-sm text-neutral-500">
-                No source blocks listed.
-              </div>
-            ) : (
-              <div className="mt-4 space-y-3">
-                {blocks.map((block) => (
-                  <div
-                    key={block.block_id}
-                    className="rounded-2xl border border-neutral-200/70 bg-neutral-50 p-4"
-                  >
-                    <div className="flex items-center justify-between text-xs text-neutral-500">
-                      <span>{block.type ?? "Block"}</span>
-                      <span>#{block.block_index ?? "N/A"}</span>
-                    </div>
-                    <p className="mt-2 text-sm text-neutral-700">
-                      {block.text ?? ""}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="mt-4">
+              <EvidenceBlocksList
+                blocks={blocks}
+                paperId={item.paper_id}
+                uploads={uploads}
+              />
+            </div>
           </div>
         </section>
         <aside className="space-y-4">
@@ -83,7 +79,7 @@ export default async function ItemDetailPage({
             <div className="mt-4 space-y-3 text-sm text-neutral-600">
               <div className="flex items-center justify-between gap-3">
                 <span>Kind</span>
-                <span>{item.item_kind ?? "item"}</span>
+                <span>{kindLabel(item.item_kind)}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span>Confidence</span>
@@ -118,4 +114,20 @@ export default async function ItemDetailPage({
       </div>
     </>
   );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { paperId: string; itemId: string };
+}): Promise<Metadata> {
+  const resolvedParams = await params;
+  const item = await getItemByKey(resolvedParams.paperId, resolvedParams.itemId);
+  const title = item ? getItemTitle(item) : "Item";
+  const paper = item ? await getPaperById(item.paper_id) : null;
+  const paperTitle = paper?.title ? ` · ${paper.title}` : "";
+  return {
+    title: `Item: ${title}${paperTitle} · Experimentein.ai`,
+    description: "Item details and evidence links.",
+  };
 }

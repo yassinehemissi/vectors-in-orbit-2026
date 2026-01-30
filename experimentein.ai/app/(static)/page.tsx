@@ -8,7 +8,7 @@ import { SiteHeader } from "@/components/site-header";
 const tourStops = [
   {
     title: "Discover",
-    description: "Search papers and experiments with natural language prompts.",
+    description: "Search papers and items with natural language prompts.",
     highlight: "Search by intent",
   },
   {
@@ -18,7 +18,7 @@ const tourStops = [
   },
   {
     title: "Compare",
-    description: "Line up experiments and surface differences instantly.",
+    description: "Line up items and surface differences instantly.",
     highlight: "Side-by-side",
   },
   {
@@ -37,10 +37,10 @@ const featureCards = [
   {
     title: "Evidence-first discovery",
     description:
-      "Find experiments by intent, then jump directly into the proof behind every claim.",
+      "Find items by intent, then jump directly into the proof behind every claim.",
   },
   {
-    title: "Experiment-grade summaries",
+    title: "Item-grade summaries",
     description:
       "Structured cards keep goals, setups, metrics, and results readable at a glance.",
   },
@@ -52,7 +52,7 @@ const featureCards = [
   {
     title: "Compare in one sweep",
     description:
-      "Align experiments side-by-side to spot deltas, conflicts, and gaps instantly.",
+      "Align items side-by-side to spot deltas, conflicts, and gaps instantly.",
   },
   {
     title: "Protein-aware enrichment",
@@ -104,8 +104,8 @@ export default function Home() {
               Bold, precise, and built for scientific velocity.
             </h1>
             <p className="max-w-xl text-base text-neutral-600 md:text-lg">
-              Experimentein.ai transforms dense research into bold experiment
-              cards so teams can decide faster without losing the evidence.
+              Experimentein.ai transforms dense research into bold item cards so
+              teams can decide faster without losing the evidence.
             </p>
             <div className="flex flex-wrap gap-3">
               <button type="button" className="btn-primary">
@@ -139,7 +139,7 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs uppercase text-neutral-400">
-                    Featured experiment
+                    Featured item
                   </p>
                   <h2 className="text-xl font-semibold text-neutral-900">
                     Protein stability shift in glycolytic mutants
@@ -177,7 +177,7 @@ export default function Home() {
                   Compare mode
                 </p>
                 <h3 className="mt-2 text-lg font-semibold text-neutral-900">
-                  Align experiments side-by-side
+                  Align items side-by-side
                 </h3>
                 <p className="mt-2 text-sm text-neutral-600">
                   Highlight conflicts and missing fields instantly with evidence
@@ -210,7 +210,7 @@ export default function Home() {
               </h2>
             </div>
             <p className="max-w-md text-sm text-neutral-500">
-              A calm, curated sequence that lets anyone navigate experiments
+              A calm, curated sequence that lets anyone navigate items
               without jargon or overload.
             </p>
           </div>
@@ -429,7 +429,7 @@ export default function Home() {
                     </p>
                   </div>
                   <div className="relative rounded-2xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
-                    Structured experiments. Zero guesswork.
+                    Structured items. Zero guesswork.
                   </div>
                 </div>
 

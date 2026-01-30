@@ -7,6 +7,7 @@ import { authOptions } from "@/auth";
 import { connectToDatabase } from "@/lib/mongoose";
 import { User } from "@/models/User";
 import { logActivity } from "@/storage/activity";
+import type { Metadata } from "next";
 
 interface PaperPageProps {
   params: { paperId: string };
@@ -29,7 +30,7 @@ export default async function PaperPage({ params }: PaperPageProps) {
             Paper unavailable
           </h2>
           <p className="mt-3 text-sm text-neutral-600">
-            This record is not indexed yet or the ID does not exist.
+            This record is not indexed yet or unavailable.
           </p>
           <Link className="btn-secondary mt-6" href="/dashboard/search">
             Back to search
@@ -49,7 +50,7 @@ export default async function PaperPage({ params }: PaperPageProps) {
         await logActivity({
           userId: user._id,
           title: "Viewed paper",
-          detail: paper.title ?? paper.paper_id ?? "Paper",
+          detail: paper.title ?? "Paper",
           type: "paper_view",
           metadata: { paperId: paper.paper_id },
         });
@@ -69,7 +70,7 @@ export default async function PaperPage({ params }: PaperPageProps) {
         <section className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm">
           <p className="text-xs uppercase text-neutral-400">Summary</p>
           <h2 className="mt-2 text-2xl font-semibold text-neutral-900">
-            {paper.title ?? paper.paper_id ?? "Paper"}
+            {paper.title ?? "Paper"}
           </h2>
           <p className="mt-4 text-sm leading-7 text-neutral-600">
             {paper.summary ?? "No summary available yet."}
@@ -104,11 +105,8 @@ export default async function PaperPage({ params }: PaperPageProps) {
               <Link className="btn-secondary" href="/dashboard/search">
                 Search related content
               </Link>
-              <Link
-                className="btn-primary"
-                href={`/dashboard/papers/${paper.paper_id}/experiments`}
-              >
-                Related experiments
+              <Link className="btn-primary" href="/dashboard/items">
+                Explore items
               </Link>
             </div>
           </div>
@@ -116,4 +114,18 @@ export default async function PaperPage({ params }: PaperPageProps) {
       </div>
     </>
   );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { paperId: string };
+}): Promise<Metadata> {
+  const resolvedParams = await params;
+  const paper = await getPaperById(resolvedParams.paperId);
+  const title = paper?.title ?? "Paper";
+  return {
+    title: `Paper: ${title} · Experimentein.ai`,
+    description: "Paper summary and linked sections.",
+  };
 }

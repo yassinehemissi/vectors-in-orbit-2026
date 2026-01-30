@@ -7,6 +7,9 @@ import { authOptions } from "@/auth";
 import { connectToDatabase } from "@/lib/mongoose";
 import { User } from "@/models/User";
 import { logActivity } from "@/storage/activity";
+import { PdfEvidenceTrigger } from "@/components/dashboard/pdf-evidence-trigger";
+import type { Metadata } from "next";
+import { getPaperById } from "@/storage/papers";
 
 interface SectionPageProps {
   params: { paperId: string; sectionId: string };
@@ -32,7 +35,7 @@ export default async function SectionPage({ params }: SectionPageProps) {
             Section unavailable
           </h2>
           <p className="mt-3 text-sm text-neutral-600">
-            This section is not indexed yet or the ID does not exist.
+            This section is not indexed yet or unavailable.
           </p>
           <Link className="btn-secondary mt-6" href="/dashboard/search">
             Back to search
@@ -52,7 +55,7 @@ export default async function SectionPage({ params }: SectionPageProps) {
         await logActivity({
           userId: user._id,
           title: "Viewed section",
-          detail: section.title ?? section.section_id ?? "Section",
+          detail: section.section_title ?? "Section",
           type: "section_view",
           metadata: { paperId: section.paper_id, sectionId: section.section_id },
         });
@@ -72,7 +75,7 @@ export default async function SectionPage({ params }: SectionPageProps) {
         <section className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm">
           <p className="text-xs uppercase text-neutral-400">Summary</p>
           <h2 className="mt-2 text-2xl font-semibold text-neutral-900">
-            {section.section_title ?? section.section_id ?? "Section"}
+            {section.section_title ?? "Section"}
           </h2>
           <p className="mt-4 text-sm leading-7 text-neutral-600">
             {section.summary ?? "No summary available yet."}
@@ -84,6 +87,12 @@ export default async function SectionPage({ params }: SectionPageProps) {
             >
               View paper
             </Link>
+            <PdfEvidenceTrigger
+              paperId={section.paper_id}
+              doclingRef={section.docling_ref}
+              label="View in PDF"
+              highlightLabel="Section"
+            />
             <Link className="btn-secondary" href="/dashboard/search">
               Search related content
             </Link>
@@ -111,8 +120,8 @@ export default async function SectionPage({ params }: SectionPageProps) {
                 itemId={section.section_id}
                 paperId={section.paper_id}
               />
-              <Link className="btn-primary" href="/dashboard/experiments">
-                Explore experiments
+              <Link className="btn-primary" href="/dashboard/items">
+                Explore items
               </Link>
             </div>
           </div>
@@ -120,4 +129,20 @@ export default async function SectionPage({ params }: SectionPageProps) {
       </div>
     </>
   );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { paperId: string; sectionId: string };
+}): Promise<Metadata> {
+  const resolvedParams = await params;
+  const section = await getSectionById(resolvedParams.paperId, resolvedParams.sectionId);
+  const paper = section ? await getPaperById(section.paper_id) : null;
+  const title = section?.title ?? "Section";
+  const paperTitle = paper?.title ? ` · ${paper.title}` : "";
+  return {
+    title: `Section: ${title}${paperTitle} · Experimentein.ai`,
+    description: "Section summary and linked evidence.",
+  };
 }

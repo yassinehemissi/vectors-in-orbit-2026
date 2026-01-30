@@ -5,6 +5,12 @@ import { connectToDatabase } from "@/lib/mongoose";
 import { User } from "@/models/User";
 import { listActivityPage } from "@/storage/activity";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Activity · Experimentein.ai",
+  description: "Review recent actions and item activity.",
+};
 
 function formatRelative(value: string) {
   const date = new Date(value);

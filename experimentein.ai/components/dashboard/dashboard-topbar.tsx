@@ -18,7 +18,7 @@ export function DashboardTopBar({ title, subtitle }: DashboardTopBarProps) {
           New search
         </button>
         <button type="button" className="btn-primary">
-          Compare experiments
+          Compare items
         </button>
       </div>
     </div>

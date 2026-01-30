@@ -21,12 +21,12 @@ export default function SignUpPage() {
                 Join the workspace that keeps science grounded in evidence.
               </h1>
               <p className="text-sm text-white/70">
-                Create an account to access experiment cards, evidence links, and
+                Create an account to access item cards, evidence links, and
                 credit-safe AI actions.
               </p>
               <div className="grid gap-3 text-sm text-white/70">
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  Structured experiments for every paper.
+                  Structured items for every paper.
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                   Compare results in a single view.

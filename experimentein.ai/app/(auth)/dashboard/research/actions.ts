@@ -7,7 +7,6 @@ import { connectToDatabase } from "@/lib/mongoose";
 import { User } from "@/models/User";
 import { createResearch, addResearchItem } from "@/storage/research";
 import { logActivity } from "@/storage/activity";
-import { getExperimentByKey, getExperimentTitle } from "@/storage/experiments";
 import { getItemByKey, getItemTitle } from "@/storage/items";
 import { getPaperById } from "@/storage/papers";
 import { getSectionById } from "@/storage/sections";
@@ -110,17 +109,13 @@ export async function saveResearchItemAction(
       }
       if (kind === "section" && paperId) {
         const section = await getSectionById(paperId, itemId);
-        return section?.title ?? "Untitled section";
+        return section?.section_title ?? "Untitled section";
       }
       if (kind === "block" && paperId) {
         const block = await getBlockById(paperId, itemId);
         return block?.type ? `${block.type} block` : "Block";
       }
-      if (kind === "experiment" && paperId) {
-        const experiment = await getExperimentByKey(paperId, itemId);
-        return experiment ? getExperimentTitle(experiment) : "Untitled experiment";
-      }
-      if (kind === "item" && paperId) {
+      if ((kind === "item" || kind === "experiment") && paperId) {
         const item = await getItemByKey(paperId, itemId);
         return item ? getItemTitle(item) : "Untitled item";
       }

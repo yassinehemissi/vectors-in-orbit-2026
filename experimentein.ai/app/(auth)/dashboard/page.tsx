@@ -11,6 +11,12 @@ import { Research } from "@/models/Research";
 import { ResearchItem } from "@/models/ResearchItem";
 import { listRecentActivity } from "@/storage/activity";
 import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Overview · Experimentein.ai",
+  description: "Track recent activity, credits, and research summaries.",
+};
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -53,7 +59,7 @@ export default async function DashboardPage() {
     <>
       <DashboardTopBar
         title="Command center"
-        subtitle="Track experiments, evidence, and credit usage at a glance."
+        subtitle="Track items, evidence, and credit usage at a glance."
       />
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
@@ -89,15 +95,15 @@ export default async function DashboardPage() {
             <Link className="btn-primary" href="/dashboard/search">
               Run a new search
             </Link>
-            <Link className="btn-secondary" href="/dashboard/experiments">
-              Compare experiments
+            <Link className="btn-secondary" href="/dashboard/items">
+              Compare items
             </Link>
             <Link className="btn-secondary" href="/dashboard/research">
               Review research
             </Link>
           </div>
           <div className="mt-5 rounded-2xl border border-dashed border-neutral-200 p-4 text-xs text-neutral-500">
-            Tip: Save an experiment to build evidence packs for reports.
+            Tip: Save an item to build evidence packs for reports.
           </div>
         </div>
       </div>

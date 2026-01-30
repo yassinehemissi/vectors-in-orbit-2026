@@ -37,7 +37,7 @@ export default function SignInPage() {
                 Welcome back to the evidence-first workspace.
               </h1>
               <p className="text-sm text-white/70">
-                Sign in to continue exploring structured experiments, comparisons,
+                Sign in to continue exploring structured items, comparisons,
                 and AI-powered insights.
               </p>
               <div className="grid gap-3 text-sm text-white/70">
@@ -48,7 +48,7 @@ export default function SignInPage() {
                   Credits are transparent and tracked.
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                  Compare experiments with clarity.
+                  Compare items with clarity.
                 </div>
               </div>
             </div>

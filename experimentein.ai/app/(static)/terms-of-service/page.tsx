@@ -26,7 +26,7 @@ export default function TermsOfServicePage() {
               </p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>Indexes public scientific literature</li>
-                <li>Extracts and summarizes experiments</li>
+                <li>Extracts and summarizes items</li>
                 <li>Provides semantic search and AI-assisted analysis</li>
               </ul>
               <p className="mt-2">
@@ -99,7 +99,7 @@ export default function TermsOfServicePage() {
               <p className="mt-2">We are not liable for:</p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>Decisions made based on generated outputs</li>
-                <li>Errors or omissions in extracted experiments</li>
+                <li>Errors or omissions in extracted items</li>
                 <li>Loss of data due to service interruption</li>
               </ul>
             </section>
@@ -131,4 +131,3 @@ export default function TermsOfServicePage() {
     </div>
   );
 }
-

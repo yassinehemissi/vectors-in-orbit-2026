@@ -6,6 +6,12 @@ import { User } from "@/models/User";
 import { listResearch } from "@/storage/research";
 import Link from "next/link";
 import { ResearchCreateButton } from "@/components/dashboard/research-create";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Research · Experimentein.ai",
+  description: "Manage research collections and saved items.",
+};
 
 export default async function DashboardResearchPage() {
   const session = await getServerSession(authOptions);

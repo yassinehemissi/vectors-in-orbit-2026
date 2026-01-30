@@ -12,13 +12,14 @@ export function parseExperimentJson(raw?: unknown) {
 export function getExperimentTitle(row: Record<string, any>) {
   if (row?.label) return row.label as string;
   const parsed = parseExperimentJson(row?.item_json);
-  return parsed?.label ?? row?.item_id ?? "Experiment";
+  return parsed?.label ?? "Experiment";
 }
 
 export function getExperimentSummary(row: Record<string, any>) {
   if (row?.summary) return row.summary as string;
+  if (row?.description) return row.description as string;
   const parsed = parseExperimentJson(row?.item_json);
-  return parsed?.summary ?? undefined;
+  return parsed?.summary ?? parsed?.description ?? undefined;
 }
 
 export async function getExperimentByKey(paperId: string, experimentId: string) {

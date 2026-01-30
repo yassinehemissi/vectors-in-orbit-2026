@@ -6,6 +6,12 @@ import { getServerSession } from "next-auth";
 import { connectToDatabase } from "@/lib/mongoose";
 import { User } from "@/models/User";
 import { UsageChart } from "@/components/dashboard/usage-chart";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Credits · Experimentein.ai",
+  description: "Track balances, reservations, and usage activity.",
+};
 
 export default async function DashboardCreditsPage() {
   const session = await getServerSession(authOptions);

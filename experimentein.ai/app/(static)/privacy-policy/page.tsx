@@ -17,7 +17,7 @@ export default function PrivacyPolicyPage() {
             <p>
               Experimentein.ai (Experimentein, we, us) is a research-oriented web
               application designed to help users explore, analyze, and compare
-              scientific experiments extracted from public research papers.
+              scientific items extracted from public research papers.
             </p>
             <p>
               We take privacy seriously and collect only what is necessary to
@@ -51,7 +51,7 @@ export default function PrivacyPolicyPage() {
               </p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>Credit balance and transactions</li>
-                <li>Actions performed (e.g. experiment analysis, enrichment)</li>
+                <li>Actions performed (e.g. item analysis, enrichment)</li>
                 <li>Token usage metadata (counts only, not raw prompts)</li>
               </ul>
               <p className="mt-2">
@@ -65,7 +65,7 @@ export default function PrivacyPolicyPage() {
               <p className="mt-2">Experimentein processes public scientific content, including:</p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>Research papers (e.g. from arXiv)</li>
-                <li>Extracted experiment summaries</li>
+                <li>Extracted item summaries</li>
                 <li>Derived embeddings for semantic search</li>
               </ul>
               <p className="mt-2">
@@ -81,7 +81,7 @@ export default function PrivacyPolicyPage() {
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 <li>Authenticate users</li>
                 <li>Provide access to features and credits</li>
-                <li>Enable semantic search and experiment comparison</li>
+                <li>Enable semantic search and item comparison</li>
                 <li>Improve system performance and reliability</li>
                 <li>Prevent misuse of the service</li>
               </ul>
@@ -168,4 +168,3 @@ export default function PrivacyPolicyPage() {
     </div>
   );
 }
-

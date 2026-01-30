@@ -1,5 +1,7 @@
 import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
 import { getBlockById } from "@/storage/blocks";
+import { getPaperUploads } from "@/storage/papers-data";
+import { EvidenceBlocksList } from "@/components/dashboard/evidence-blocks";
 import Link from "next/link";
 import { ResearchSaveButton } from "@/components/dashboard/research-save";
 import { getServerSession } from "next-auth";
@@ -7,6 +9,9 @@ import { authOptions } from "@/auth";
 import { connectToDatabase } from "@/lib/mongoose";
 import { User } from "@/models/User";
 import { logActivity } from "@/storage/activity";
+import { PdfEvidenceTrigger } from "@/components/dashboard/pdf-evidence-trigger";
+import type { Metadata } from "next";
+import { getPaperById } from "@/storage/papers";
 
 interface BlockPageProps {
   params: { paperId: string; blockId: string };
@@ -15,6 +20,7 @@ interface BlockPageProps {
 export default async function BlockPage({ params }: BlockPageProps) {
   const resolvedParams = await params;
   const block = await getBlockById(resolvedParams.paperId, resolvedParams.blockId);
+  const uploads = block ? await getPaperUploads(block.paper_id) : { figures: [], tables: [] };
 
   if (!block) {
     return (
@@ -29,7 +35,7 @@ export default async function BlockPage({ params }: BlockPageProps) {
             Block unavailable
           </h2>
           <p className="mt-3 text-sm text-neutral-600">
-            This block is not indexed yet or the ID does not exist.
+            This block is not indexed yet or unavailable.
           </p>
           <Link className="btn-secondary mt-6" href="/dashboard/search">
             Back to search
@@ -85,6 +91,16 @@ export default async function BlockPage({ params }: BlockPageProps) {
           <p className="mt-4 whitespace-pre-line text-sm leading-7 text-neutral-600">
             {block.text ?? "No text available for this block."}
           </p>
+          {block.type === "figure" || block.type === "table" ? (
+            <div className="mt-6">
+              <EvidenceBlocksList
+                blocks={[block]}
+                paperId={block.paper_id}
+                uploads={uploads}
+                showActions={false}
+              />
+            </div>
+          ) : null}
           <div className="mt-6 flex flex-wrap gap-3">
             {block.section_id ? (
               <Link
@@ -94,6 +110,12 @@ export default async function BlockPage({ params }: BlockPageProps) {
                 View section
               </Link>
             ) : null}
+            <PdfEvidenceTrigger
+              paperId={block.paper_id}
+              doclingRef={block.docling_ref}
+              label="View in PDF"
+              highlightLabel={block.type ? `${block.type} block` : "Block"}
+            />
             <Link
               className="btn-secondary"
               href={`/dashboard/papers/${block.paper_id}`}
@@ -143,4 +165,20 @@ export default async function BlockPage({ params }: BlockPageProps) {
       </div>
     </>
   );
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { paperId: string; blockId: string };
+}): Promise<Metadata> {
+  const resolvedParams = await params;
+  const block = await getBlockById(resolvedParams.paperId, resolvedParams.blockId);
+  const paper = block ? await getPaperById(block.paper_id) : null;
+  const title = block?.type ? `${block.type} block` : "Block";
+  const paperTitle = paper?.title ? ` · ${paper.title}` : "";
+  return {
+    title: `Block: ${title}${paperTitle} · Experimentein.ai`,
+    description: "Block content and evidence details.",
+  };
 }

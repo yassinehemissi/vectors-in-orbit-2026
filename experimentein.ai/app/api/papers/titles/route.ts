@@ -36,7 +36,7 @@ export async function GET(request: Request) {
 
   const titles = rows.reduce<Record<string, string>>((acc, row) => {
     if (row.paper_id) {
-      acc[row.paper_id] = row.title ?? row.paper_id;
+      acc[row.paper_id] = row.title ?? "Untitled paper";
     }
     return acc;
   }, {});

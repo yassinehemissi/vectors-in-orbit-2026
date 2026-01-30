@@ -19,7 +19,7 @@ export default function PricingPage() {
             <div className="rounded-3xl border border-neutral-200/70 bg-neutral-50 p-6">
               <p className="text-xs uppercase text-neutral-400">Starter</p>
               <h2 className="mt-2 text-2xl font-semibold text-neutral-900">Free</h2>
-              <p className="mt-2 text-sm text-neutral-600">Explore experiments and evidence.</p>
+              <p className="mt-2 text-sm text-neutral-600">Explore items and evidence.</p>
             </div>
             <div className="rounded-3xl border border-neutral-200/70 bg-neutral-50 p-6">
               <p className="text-xs uppercase text-neutral-400">Pro</p>
