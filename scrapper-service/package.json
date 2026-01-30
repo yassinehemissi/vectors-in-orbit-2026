@@ -1,0 +1,17 @@
+{
+  "name": "scrapper-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "start": "bun run src/index.ts"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.0.0",
+    "express": "^5.2.1",
+    "multer": "^2.0.2",
+    "uploadthing": "^7.7.4"
+  }
+}
