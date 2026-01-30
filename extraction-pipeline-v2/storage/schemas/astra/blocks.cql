@@ -10,5 +10,6 @@ CREATE TABLE IF NOT EXISTS blocks (
   block_index int,
   section_index int,
   flags text,
+  docling_ref text,
   PRIMARY KEY (paper_id, block_id)
 );
