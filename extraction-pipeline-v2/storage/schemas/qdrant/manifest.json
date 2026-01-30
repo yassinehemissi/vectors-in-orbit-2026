@@ -1,0 +1,8 @@
+{
+  "collections": [
+    "blocks.json",
+    "sections.json",
+    "papers.json",
+    "items.json"
+  ]
+}

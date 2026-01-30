@@ -1,8 +1,8 @@
-# Babyneers — Vectors in Orbit 2016
+# Babyneers — Vectors in Orbit 2026
 
 ## Introduction
 
-This repository documents the work of the **Babyneers Team** during the **Vectors in Orbit 2016** hackathon, hosted by **GDC SupCom x FST** and partnered with **Qdrant**. 
+This repository documents the work of the **Babyneers Team** during the **Vectors in Orbit 2026** hackathon, hosted by **GDC SupCom x FST** and partnered with **Qdrant**. 
 
 We developed **Experimentein.ai**, a platform for extracting, indexing, and discovering protein experiments from scientific literature using vector databases and large language models. Our work demonstrates how vector-based retrieval and semantic search can unlock experiment-level discovery in biology research—transforming fragmented experimental descriptions scattered across papers into a transparent, queryable knowledge space.
 
@@ -117,8 +117,8 @@ See `experimentein.ai/README.md` for setup, deployment, and feature documentatio
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/babyneers/experimentein.git
-   cd experimentein
+   git clone https://github.com/yassinehemissi/vectors-in-orbit-2026
+   cd vectors-in-orbit-2026
    ```
 
 2. **Set up the extraction pipeline** (see `extraction-pipeline/README.md`)
@@ -212,4 +212,7 @@ Experimentein.ai demonstrates:
 ---
 
 *AI-assisted documentation*  
-**Vectors in Orbit 2016** — GDC SupCom x FST x Qdrant 2026 Babyneers Team. All rights reserved.
+**Vectors in Orbit 2026** — GDC SupCom x FST x Qdrant 2026 Babyneers Team. All rights reserved.
+
+
+
