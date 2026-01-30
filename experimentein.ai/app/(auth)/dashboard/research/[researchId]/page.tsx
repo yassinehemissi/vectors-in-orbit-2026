@@ -6,12 +6,50 @@ import { User } from "@/models/User";
 import { listResearchItemsGrouped } from "@/storage/research";
 import mongoose from "mongoose";
 import Link from "next/link";
+import { getItemByKey, getItemTitle } from "@/storage/items";
+import { getExperimentByKey, getExperimentTitle } from "@/storage/experiments";
+import { getPaperById } from "@/storage/papers";
+import { getSectionById } from "@/storage/sections";
+import { getBlockById } from "@/storage/blocks";
 
 const kindLabels: Record<string, string> = {
   experiment: "Experiments",
   paper: "Papers",
   section: "Sections",
   block: "Blocks",
+  item: "Items",
+};
+
+const getDisplayTitle = async ({
+  kind,
+  itemId,
+  paperId,
+}: {
+  kind: string;
+  itemId: string;
+  paperId?: string;
+}) => {
+  if (kind === "paper") {
+    const paper = await getPaperById(itemId);
+    return paper?.title ?? "Untitled paper";
+  }
+  if (kind === "section" && paperId) {
+    const section = await getSectionById(paperId, itemId);
+    return section?.title ?? "Untitled section";
+  }
+  if (kind === "block" && paperId) {
+    const block = await getBlockById(paperId, itemId);
+    return block?.type ? `${block.type} block` : "Block";
+  }
+  if (kind === "experiment" && paperId) {
+    const experiment = await getExperimentByKey(paperId, itemId);
+    return experiment ? getExperimentTitle(experiment) : "Untitled experiment";
+  }
+  if (kind === "item" && paperId) {
+    const item = await getItemByKey(paperId, itemId);
+    return item ? getItemTitle(item) : "Untitled item";
+  }
+  return "Untitled item";
 };
 
 export default async function ResearchCollectionPage({
@@ -59,6 +97,43 @@ export default async function ResearchCollectionPage({
     new mongoose.Types.ObjectId(params.researchId),
   );
 
+  const displayCache = new Map<string, string>();
+  const getCachedTitle = async (key: string, fetcher: () => Promise<string>) => {
+    if (displayCache.has(key)) {
+      return displayCache.get(key) as string;
+    }
+    const title = await fetcher();
+    displayCache.set(key, title);
+    return title;
+  };
+
+  const displayTitles = await Promise.all(
+    Object.entries(grouped).flatMap(([kind, items]) =>
+      items.map(async (item) => {
+        const title = await getCachedTitle(
+          `${kind}:${item.paperId ?? "np"}:${item.itemId}`,
+          () =>
+            getDisplayTitle({
+              kind,
+              itemId: item.itemId,
+              paperId: item.paperId,
+            }),
+        );
+        return {
+          kind,
+          itemId: item.itemId,
+          paperId: item.paperId,
+          title,
+        };
+      }),
+    ),
+  );
+
+  const titleMap = displayTitles.reduce<Record<string, string>>((acc, entry) => {
+    acc[`${entry.kind}:${entry.paperId ?? "np"}:${entry.itemId}`] = entry.title;
+    return acc;
+  }, {});
+
   return (
     <>
       <DashboardTopBar
@@ -92,13 +167,19 @@ export default async function ResearchCollectionPage({
                   const openHref =
                     kind === "experiment" && item.paperId
                       ? `/dashboard/experiments/${item.paperId}/${item.itemId}`
-                      : kind === "paper"
-                        ? `/dashboard/papers/${item.itemId}`
-                        : kind === "section" && item.paperId
-                          ? `/dashboard/sections/${item.paperId}/${item.itemId}`
-                          : kind === "block" && item.paperId
-                            ? `/dashboard/blocks/${item.paperId}/${item.itemId}`
-                            : undefined;
+                      : kind === "item" && item.paperId
+                        ? `/dashboard/items/${item.paperId}/${item.itemId}`
+                        : kind === "paper"
+                          ? `/dashboard/papers/${item.itemId}`
+                          : kind === "section" && item.paperId
+                            ? `/dashboard/sections/${item.paperId}/${item.itemId}`
+                            : kind === "block" && item.paperId
+                              ? `/dashboard/blocks/${item.paperId}/${item.itemId}`
+                              : undefined;
+
+                  const title =
+                    titleMap[`${kind}:${item.paperId ?? "np"}:${item.itemId}`] ??
+                    "Untitled";
 
                   return (
                     <div
@@ -109,7 +190,7 @@ export default async function ResearchCollectionPage({
                         {item.kind}
                       </p>
                       <p className="mt-2 text-sm font-semibold text-neutral-900">
-                        {item.itemId}
+                        {title}
                       </p>
                       {item.notes ? (
                         <p className="mt-2 text-xs text-neutral-500">

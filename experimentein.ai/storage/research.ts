@@ -115,8 +115,7 @@ export async function listResearchItemsGrouped(
     .sort({ createdAt: -1 })
     .lean();
 
-  return items.reduce<Record<ResearchItemKind, typeof items>>(
-    (acc, item) => {
+  return items.reduce<Record<ResearchItemKind, typeof items>>((acc, item) => {
       const kind = item.kind as ResearchItemKind;
       acc[kind].push(item);
       return acc;
@@ -126,6 +125,7 @@ export async function listResearchItemsGrouped(
       paper: [],
       section: [],
       block: [],
+      item: [],
     }
   );
 }

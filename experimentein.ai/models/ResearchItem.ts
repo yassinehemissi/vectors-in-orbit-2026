@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
-export type ResearchItemKind = "experiment" | "paper" | "section" | "block";
+export type ResearchItemKind = "experiment" | "paper" | "section" | "block" | "item";
 
 export interface ResearchItemDocument {
   researchId: mongoose.Types.ObjectId;
@@ -19,7 +19,7 @@ const ResearchItemSchema = new Schema<ResearchItemDocument>(
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     kind: {
       type: String,
-      enum: ["experiment", "paper", "section", "block"],
+      enum: ["experiment", "paper", "section", "block", "item"],
       required: true,
     },
     paperId: { type: String },

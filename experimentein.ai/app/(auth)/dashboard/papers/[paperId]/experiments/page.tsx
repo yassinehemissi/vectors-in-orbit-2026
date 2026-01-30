@@ -1,5 +1,6 @@
 import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
 import { listExperimentsByPaper, getExperimentSummary, getExperimentTitle } from "@/storage/experiments";
+import { getPaperById } from "@/storage/papers";
 import Link from "next/link";
 
 export default async function PaperExperimentsPage({
@@ -9,6 +10,7 @@ export default async function PaperExperimentsPage({
 }) {
   const resolvedParams = await params;
   const experiments = await listExperimentsByPaper(resolvedParams.paperId);
+  const paper = await getPaperById(resolvedParams.paperId);
 
   return (
     <>
@@ -21,7 +23,7 @@ export default async function PaperExperimentsPage({
           <div>
             <p className="text-xs uppercase text-neutral-400">Paper</p>
             <h3 className="mt-2 text-lg font-semibold text-neutral-900">
-              {resolvedParams.paperId}
+              {paper?.title ?? "Untitled paper"}
             </h3>
           </div>
           <Link className="btn-secondary text-xs" href={`/dashboard/papers/${resolvedParams.paperId}`}>
@@ -36,7 +38,7 @@ export default async function PaperExperimentsPage({
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             {experiments.map((experiment) => (
               <div
-                key={`${experiment.paper_id}-${experiment.experiment_id}`}
+                key={`${experiment.paper_id}-${experiment.item_id}`}
                 className="rounded-3xl border border-neutral-200/70 bg-neutral-50 p-6"
               >
                 <p className="text-xs uppercase text-neutral-400">Experiment</p>
@@ -48,7 +50,7 @@ export default async function PaperExperimentsPage({
                 </p>
                 <Link
                   className="btn-secondary mt-4 inline-flex"
-                  href={`/dashboard/experiments/${experiment.paper_id}/${experiment.experiment_id}`}
+                  href={`/dashboard/experiments/${experiment.paper_id}/${experiment.item_id}`}
                 >
                   Open experiment
                 </Link>

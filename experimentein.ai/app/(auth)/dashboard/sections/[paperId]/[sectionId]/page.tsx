@@ -52,7 +52,7 @@ export default async function SectionPage({ params }: SectionPageProps) {
         await logActivity({
           userId: user._id,
           title: "Viewed section",
-          detail: section.section_title ?? section.section_id ?? "Section",
+          detail: section.title ?? section.section_id ?? "Section",
           type: "section_view",
           metadata: { paperId: section.paper_id, sectionId: section.section_id },
         });
@@ -93,18 +93,6 @@ export default async function SectionPage({ params }: SectionPageProps) {
           <div className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm">
             <p className="text-xs uppercase text-neutral-400">Metadata</p>
             <div className="mt-4 space-y-3 text-sm text-neutral-600">
-              <div className="flex items-center justify-between gap-3">
-                <span>Section ID</span>
-                <span className="font-mono text-xs text-neutral-500">
-                  {section.section_id}
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span>Paper ID</span>
-                <span className="font-mono text-xs text-neutral-500">
-                  {section.paper_id}
-                </span>
-              </div>
               <div className="flex items-center justify-between gap-3">
                 <span>Summary chars</span>
                 <span>{section.summary_chars ?? "N/A"}</span>

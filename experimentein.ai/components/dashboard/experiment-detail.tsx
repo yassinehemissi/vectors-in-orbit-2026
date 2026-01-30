@@ -60,7 +60,7 @@ export function ExperimentDetailClient({
     try {
       if (kind === "section") {
         const section = await getSectionById(paperId, id);
-        setPreviewTitle(section?.section_title ?? section?.section_id ?? "Section");
+        setPreviewTitle(section?.title ?? section?.section_id ?? "Section");
         setPreviewSummary(section?.summary ?? "No summary available yet.");
       } else {
         const paper = await getPaperById(paperId);

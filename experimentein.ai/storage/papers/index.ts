@@ -8,7 +8,7 @@ export async function getPaperById(paperId: string) {
   }
 
   const paper = await (await getAstraClient())
-    .collection("hblocks_papers")
+    .collection("papers")
     .findOne({ paper_id: paperId });
 
   return paper;

@@ -6,7 +6,7 @@ import { searchContent } from "@/storage/search";
 import Link from "next/link";
 import { ResearchSaveButton } from "@/components/dashboard/research-save";
 
-const modes = ["Papers", "Sections", "Blocks", "Experiments"] as const;
+const modes = ["Papers", "Sections", "Blocks", "Items", "Experiments"] as const;
 const sortModes = ["Relevance", "Recent", "Confidence"] as const;
 const filters = ["High confidence", "Has evidence", "Missing fields"] as const;
 
@@ -18,12 +18,19 @@ type Filter = (typeof filters)[number];
 
 type SearchResult = Awaited<ReturnType<typeof searchContent>>[number];
 
+const truncateId = (value?: string, keep = 10) => {
+  if (!value) return "N/A";
+  if (value.length <= keep * 2) return value;
+  return `${value.slice(0, keep)}…${value.slice(-keep)}`;
+};
+
 export default function DashboardSearchPage() {
   const [activeMode, setActiveMode] = useState<Mode>("Experiments");
   const [activeSort, setActiveSort] = useState<SortMode>("Relevance");
   const [activeFilters, setActiveFilters] = useState<Filter[]>([]);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [paperTitles, setPaperTitles] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const clearFilters = () => setActiveFilters([]);
@@ -49,6 +56,20 @@ export default function DashboardSearchPage() {
         activeMode.toLowerCase() as SearchResult["kind"],
       );
       setResults(data);
+      const uniquePapers = Array.from(
+        new Set(data.map((item) => item.paperId).filter(Boolean) as string[]),
+      );
+      if (uniquePapers.length) {
+        const response = await fetch(
+          `/api/papers/titles?ids=${encodeURIComponent(uniquePapers.join(","))}`,
+        );
+        if (response.ok) {
+          const payload = (await response.json()) as {
+            titles: Record<string, string>;
+          };
+          setPaperTitles(payload.titles ?? {});
+        }
+      }
     } finally {
       setIsLoading(false);
     }
@@ -197,15 +218,19 @@ export default function DashboardSearchPage() {
                   result.experimentId &&
                   result.paperId
                     ? `/dashboard/experiments/${result.paperId}/${result.experimentId}`
-                    : result.kind === "papers" && result.paperId
-                      ? `/dashboard/papers/${result.paperId}`
-                      : result.kind === "sections" &&
-                          result.paperId &&
-                          result.sectionId
-                        ? `/dashboard/sections/${result.paperId}/${result.sectionId}`
-                        : result.kind === "blocks" && result.paperId && result.blockId
-                          ? `/dashboard/blocks/${result.paperId}/${result.blockId}`
-                          : undefined;
+                    : result.kind === "items" && result.paperId
+                      ? `/dashboard/items/${result.paperId}/${result.id}`
+                      : result.kind === "papers" && result.paperId
+                        ? `/dashboard/papers/${result.paperId}`
+                        : result.kind === "sections" &&
+                            result.paperId &&
+                            result.sectionId
+                          ? `/dashboard/sections/${result.paperId}/${result.sectionId}`
+                          : result.kind === "blocks" &&
+                              result.paperId &&
+                              result.blockId
+                            ? `/dashboard/blocks/${result.paperId}/${result.blockId}`
+                            : undefined;
 
                 return (
                   <div
@@ -221,7 +246,12 @@ export default function DashboardSearchPage() {
                           {result.title ?? result.id}
                         </p>
                         <p className="mt-1 text-xs text-neutral-500">
-                          {result.paperId ? `Paper: ${result.paperId}` : "Paper: N/A"}
+                          {result.paperId
+                            ? `Paper: ${
+                                paperTitles[result.paperId] ??
+                                truncateId(result.paperId)
+                              }`
+                            : "Paper: N/A"}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -241,6 +271,8 @@ export default function DashboardSearchPage() {
                             kind={
                               result.kind === "experiments"
                                 ? "experiment"
+                                : result.kind === "items"
+                                  ? "item"
                                 : result.kind === "papers"
                                   ? "paper"
                                   : result.kind === "sections"
@@ -250,6 +282,8 @@ export default function DashboardSearchPage() {
                             itemId={
                               result.kind === "experiments"
                                 ? result.experimentId ?? result.id
+                                : result.kind === "items"
+                                  ? result.id
                                 : result.kind === "papers"
                                   ? result.paperId ?? result.id
                                   : result.kind === "sections"

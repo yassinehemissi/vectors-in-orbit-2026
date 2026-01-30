@@ -49,7 +49,9 @@ export default async function BlockPage({ params }: BlockPageProps) {
         await logActivity({
           userId: user._id,
           title: "Viewed block",
-          detail: block.block_id ?? "Block",
+          detail: block.type
+            ? `${block.type} block${block.block_index !== undefined ? ` #${block.block_index}` : ""}`
+            : "Block",
           type: "block_view",
           metadata: {
             paperId: block.paper_id,
@@ -78,7 +80,7 @@ export default async function BlockPage({ params }: BlockPageProps) {
         <section className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm">
           <p className="text-xs uppercase text-neutral-400">Content</p>
           <h2 className="mt-2 text-2xl font-semibold text-neutral-900">
-            {block.block_id ?? "Block"}
+            {block.type ? `${block.type} block` : "Block"}
           </h2>
           <p className="mt-4 whitespace-pre-line text-sm leading-7 text-neutral-600">
             {block.text ?? "No text available for this block."}
@@ -104,24 +106,6 @@ export default async function BlockPage({ params }: BlockPageProps) {
           <div className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm">
             <p className="text-xs uppercase text-neutral-400">Metadata</p>
             <div className="mt-4 space-y-3 text-sm text-neutral-600">
-              <div className="flex items-center justify-between gap-3">
-                <span>Block ID</span>
-                <span className="font-mono text-xs text-neutral-500">
-                  {block.block_id}
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span>Paper ID</span>
-                <span className="font-mono text-xs text-neutral-500">
-                  {block.paper_id}
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span>Section ID</span>
-                <span className="font-mono text-xs text-neutral-500">
-                  {block.section_id ?? "N/A"}
-                </span>
-              </div>
               <div className="flex items-center justify-between gap-3">
                 <span>Type</span>
                 <span>{block.type ?? "N/A"}</span>

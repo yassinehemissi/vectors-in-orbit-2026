@@ -8,7 +8,7 @@ export async function getBlockById(paperId: string, blockId: string) {
   }
 
   const block = await (await getAstraClient())
-    .collection("hblocks_blocks")
+    .collection("blocks")
     .findOne({ paper_id: paperId, block_id: blockId });
 
   return block;
@@ -20,7 +20,7 @@ export async function getBlocksByIds(paperId: string, blockIds: string[]) {
   }
 
   const blocks = await (await getAstraClient())
-    .collection("hblocks_blocks")
+    .collection("blocks")
     .find({ paper_id: paperId, block_id: { $in: blockIds } })
     .toArray();
 

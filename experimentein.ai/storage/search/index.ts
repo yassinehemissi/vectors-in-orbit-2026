@@ -13,6 +13,7 @@ import { fetchByMode, getModeConfig } from "./fetch";
 import {
   normalizeBlocks,
   normalizeExperiments,
+  normalizeItems,
   normalizePapers,
   normalizeSections,
 } from "./normalize";
@@ -87,5 +88,6 @@ export async function searchContent(
   if (mode === "papers") return normalizePapers(rows);
   if (mode === "sections") return normalizeSections(rows);
   if (mode === "blocks") return normalizeBlocks(rows);
+  if (mode === "items") return normalizeItems(rows);
   return normalizeExperiments(rows);
 }

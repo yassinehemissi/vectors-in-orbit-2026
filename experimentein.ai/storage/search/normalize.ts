@@ -1,5 +1,6 @@
 import type { NormalizedSearchResult, QdrantPayload, SearchMode } from "./types";
 import { getExperimentSummary, getExperimentTitle } from "@/storage/experiments";
+import { getItemSummary, getItemTitle } from "@/storage/items";
 
 export function normalizePapers(rows: Array<Record<string, any>>) {
   return rows.map((row) => ({
@@ -18,7 +19,7 @@ export function normalizeSections(rows: Array<Record<string, any>>) {
     id: row.section_id,
     paperId: row.paper_id,
     sectionId: row.section_id,
-    title: row.section_title ?? row.section_id,
+    title: row.title ?? row.section_id,
     summary: row.summary,
     tag: "Section",
   }));
@@ -38,14 +39,27 @@ export function normalizeBlocks(rows: Array<Record<string, any>>) {
 }
 
 export function normalizeExperiments(rows: Array<Record<string, any>>) {
+  return rows
+    .filter((row) => row.item_kind === "experiment")
+    .map((row) => ({
+      kind: "experiments" as const,
+      id: row.item_id,
+      paperId: row.paper_id,
+      experimentId: row.item_id,
+      title: getExperimentTitle(row),
+      summary: getExperimentSummary(row),
+      tag: "Experiment",
+    }));
+}
+
+export function normalizeItems(rows: Array<Record<string, any>>) {
   return rows.map((row) => ({
-    kind: "experiments" as const,
-    id: row.experiment_id,
+    kind: "items" as const,
+    id: row.item_id,
     paperId: row.paper_id,
-    experimentId: row.experiment_id,
-    title: getExperimentTitle(row),
-    summary: getExperimentSummary(row),
-    tag: row.experiment_type ?? "Experiment",
+    title: getItemTitle(row),
+    summary: getItemSummary(row),
+    tag: row.item_kind ?? "Item",
   }));
 }
 

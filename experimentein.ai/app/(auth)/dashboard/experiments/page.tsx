@@ -38,13 +38,13 @@ export default async function DashboardExperimentsPage() {
         if (unique.has(key)) continue;
         const experiment = await getExperimentByKey(paperId, experimentId);
         if (!experiment) continue;
-        let fallbackTitle = experiment.title ?? experiment.experiment_id ?? "Experiment";
+        let fallbackTitle = experiment.label ?? experiment.item_id ?? "Experiment";
         let fallbackDetail: string | undefined;
-        if (typeof experiment.experiment_json === "string") {
+        if (typeof experiment.item_json === "string") {
           try {
-            const parsed = JSON.parse(experiment.experiment_json) as any;
-            fallbackTitle = parsed?.title?.value ?? fallbackTitle;
-            fallbackDetail = parsed?.description ?? undefined;
+            const parsed = JSON.parse(experiment.item_json) as any;
+            fallbackTitle = parsed?.label ?? fallbackTitle;
+            fallbackDetail = parsed?.summary ?? undefined;
           } catch {
             // ignore parse errors
           }

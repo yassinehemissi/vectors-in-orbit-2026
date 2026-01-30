@@ -7,6 +7,11 @@ import { connectToDatabase } from "@/lib/mongoose";
 import { User } from "@/models/User";
 import { createResearch, addResearchItem } from "@/storage/research";
 import { logActivity } from "@/storage/activity";
+import { getExperimentByKey, getExperimentTitle } from "@/storage/experiments";
+import { getItemByKey, getItemTitle } from "@/storage/items";
+import { getPaperById } from "@/storage/papers";
+import { getSectionById } from "@/storage/sections";
+import { getBlockById } from "@/storage/blocks";
 import { revalidatePath } from "next/cache";
 
 type CreateResearchState = {
@@ -98,10 +103,33 @@ export async function saveResearchItemAction(
       paperId: paperId || undefined,
       notes: notes || undefined,
     });
+    const displayTitle = await (async () => {
+      if (kind === "paper") {
+        const paper = await getPaperById(itemId);
+        return paper?.title ?? "Untitled paper";
+      }
+      if (kind === "section" && paperId) {
+        const section = await getSectionById(paperId, itemId);
+        return section?.title ?? "Untitled section";
+      }
+      if (kind === "block" && paperId) {
+        const block = await getBlockById(paperId, itemId);
+        return block?.type ? `${block.type} block` : "Block";
+      }
+      if (kind === "experiment" && paperId) {
+        const experiment = await getExperimentByKey(paperId, itemId);
+        return experiment ? getExperimentTitle(experiment) : "Untitled experiment";
+      }
+      if (kind === "item" && paperId) {
+        const item = await getItemByKey(paperId, itemId);
+        return item ? getItemTitle(item) : "Untitled item";
+      }
+      return "Untitled item";
+    })();
     await logActivity({
       userId: user._id,
       title: "Saved item to research",
-      detail: `${kind} · ${itemId}`,
+      detail: displayTitle,
       type: "research_item_add",
       metadata: { researchId, paperId },
     });

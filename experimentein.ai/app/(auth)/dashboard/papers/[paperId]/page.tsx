@@ -74,27 +74,19 @@ export default async function PaperPage({ params }: PaperPageProps) {
           <p className="mt-4 text-sm leading-7 text-neutral-600">
             {paper.summary ?? "No summary available yet."}
           </p>
-          {paper.paper_url ? (
-            <a
-              className="btn-secondary mt-6 inline-flex"
-              href={paper.paper_url}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Open source
-            </a>
+          {Array.isArray(paper.authors) && paper.authors.length ? (
+            <div className="mt-6">
+              <p className="text-xs uppercase text-neutral-400">Authors</p>
+              <p className="mt-2 text-sm text-neutral-600">
+                {paper.authors.join(", ")}
+              </p>
+            </div>
           ) : null}
         </section>
         <aside className="space-y-4">
           <div className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm">
             <p className="text-xs uppercase text-neutral-400">Metadata</p>
             <div className="mt-4 space-y-3 text-sm text-neutral-600">
-              <div className="flex items-center justify-between gap-3">
-                <span>Paper ID</span>
-                <span className="font-mono text-xs text-neutral-500">
-                  {paper.paper_id}
-                </span>
-              </div>
               <div className="flex items-center justify-between gap-3">
                 <span>Summary chars</span>
                 <span>{paper.summary_chars ?? "N/A"}</span>

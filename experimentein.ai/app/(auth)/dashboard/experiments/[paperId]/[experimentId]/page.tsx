@@ -22,32 +22,17 @@ export default async function ExperimentDetailPage({
     resolvedParams.experimentId,
   );
 
-  const parseField = (label: string, rawValue?: string | null) => {
-    if (!rawValue) {
-      return { label, value: "", confidence: undefined, evidenceIds: [] as string[] };
-    }
-
-    if (typeof rawValue === "string") {
-      try {
-        const parsed = JSON.parse(rawValue) as {
-          value?: string;
-          confidence?: number;
-          evidence_block_ids?: string[];
-          evidence?: string[];
-        };
-        return {
-          label,
-          value: parsed.value ?? "",
-          confidence: parsed.confidence,
-          evidenceIds: parsed.evidence_block_ids ?? parsed.evidence ?? [],
-        };
-      } catch {
-        return { label, value: rawValue, confidence: undefined, evidenceIds: [] };
-      }
-    }
-
-    return { label, value: String(rawValue), confidence: undefined, evidenceIds: [] };
-  };
+  const parseField = (
+    label: string,
+    value?: string,
+    evidenceIds: string[] = [],
+    confidence?: number
+  ) => ({
+    label,
+    value: value ?? "",
+    confidence,
+    evidenceIds,
+  });
 
   if (!experiment) {
     return (
@@ -82,11 +67,11 @@ export default async function ExperimentDetailPage({
         await logActivity({
           userId: user._id,
           title: "Viewed experiment",
-          detail: experiment.title ?? experiment.experiment_id ?? "Experiment",
+          detail: experiment.label ?? experiment.item_id ?? "Experiment",
           type: "experiment_view",
           metadata: {
             paperId: experiment.paper_id,
-            experimentId: experiment.experiment_id,
+            experimentId: experiment.item_id,
           },
         });
       }
@@ -96,32 +81,55 @@ export default async function ExperimentDetailPage({
   }
 
   const experimentJson = (() => {
-    if (!experiment.experiment_json) return null;
-    if (typeof experiment.experiment_json !== "string") return null;
+    if (!experiment.item_json) return null;
+    if (typeof experiment.item_json !== "string") return null;
     try {
-      return JSON.parse(experiment.experiment_json) as Record<string, unknown>;
+      return JSON.parse(experiment.item_json) as Record<string, any>;
     } catch {
       return null;
     }
   })();
 
-  const getValue = (key: string, fallback?: string | null) => {
-    const fromJson = experimentJson?.[key];
-    if (fromJson && typeof fromJson === "object") {
-      return JSON.stringify(fromJson);
-    }
-    return fallback ?? "";
-  };
+  const sourceBlocks = Array.isArray(experimentJson?.source_block_ids)
+    ? (experimentJson?.source_block_ids as string[])
+    : [];
 
   const fields = [
-    parseField("Goal", getValue("goal", experiment.goal)),
-    parseField("Setup", getValue("setup", experiment.setup)),
-    parseField("Dataset", getValue("dataset", experiment.dataset)),
-    parseField("Metrics", getValue("metrics", experiment.metrics)),
-    parseField("Results", getValue("results", experiment.results)),
-    parseField("Baselines", getValue("baselines", experiment.baselines)),
-    parseField("Ablations", getValue("ablations", experiment.ablations)),
-    parseField("Limitations", getValue("limitations", experiment.limitations)),
+    parseField("Label", experiment.label ?? experimentJson?.label),
+    parseField("Summary", experiment.summary ?? experimentJson?.summary),
+    parseField(
+      "Confidence overall",
+      typeof experiment.confidence_overall === "number"
+        ? experiment.confidence_overall.toFixed(2)
+        : experimentJson?.confidence_overall?.toString()
+    ),
+    parseField(
+      "Candidate ID",
+      experimentJson?.candidate_id ? String(experimentJson.candidate_id) : ""
+    ),
+    parseField(
+      "Anchors",
+      Array.isArray(experimentJson?.anchors)
+        ? (experimentJson.anchors as string[]).join(", ")
+        : ""
+    ),
+    parseField(
+      "Predicted sections",
+      Array.isArray(experimentJson?.predicted_source_sections)
+        ? (experimentJson.predicted_source_sections as string[]).join(", ")
+        : ""
+    ),
+    parseField(
+      "Evidence hints",
+      Array.isArray(experimentJson?.evidence_hints)
+        ? (experimentJson.evidence_hints as string[]).join(", ")
+        : ""
+    ),
+    parseField(
+      "Source blocks",
+      sourceBlocks.length ? `${sourceBlocks.length} blocks` : "None",
+      sourceBlocks
+    ),
   ];
 
   const evidenceCount = new Set(
@@ -139,13 +147,10 @@ export default async function ExperimentDetailPage({
           <div className="rounded-3xl border border-neutral-200/70 bg-white p-6 shadow-sm">
             <p className="text-xs uppercase text-neutral-400">Experiment</p>
             <h2 className="mt-2 text-2xl font-semibold text-neutral-900">
-              {experiment.title ?? experiment.experiment_id ?? "Experiment"}
+              {experiment.label ?? experimentJson?.label ?? experiment.item_id ?? "Experiment"}
             </h2>
             <p className="mt-4 text-sm leading-7 text-neutral-600">
-              {experiment.summary ??
-                experiment.description ??
-                experimentJson?.description ??
-                "No summary available yet."}
+              {experiment.summary ?? experimentJson?.summary ?? "No summary available yet."}
             </p>
           </div>
           <div>
@@ -163,20 +168,8 @@ export default async function ExperimentDetailPage({
             <p className="text-xs uppercase text-neutral-400">Metadata</p>
             <div className="mt-4 space-y-3 text-sm text-neutral-600">
               <div className="flex items-center justify-between gap-3">
-                <span>Experiment ID</span>
-                <span className="font-mono text-xs text-neutral-500">
-                  {experiment.experiment_id}
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span>Paper ID</span>
-                <span className="font-mono text-xs text-neutral-500">
-                  {experiment.paper_id}
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <span>Type</span>
-                <span>{experiment.experiment_type ?? "N/A"}</span>
+                <span>Item kind</span>
+                <span>{experiment.item_kind ?? "experiment"}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span>Overall confidence</span>
@@ -197,7 +190,7 @@ export default async function ExperimentDetailPage({
             <div className="mt-4 flex flex-col gap-3">
               <ResearchSaveButton
                 kind="experiment"
-                itemId={experiment.experiment_id}
+                itemId={experiment.item_id}
                 paperId={experiment.paper_id}
               />
               <Link

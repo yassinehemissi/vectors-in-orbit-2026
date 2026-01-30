@@ -10,16 +10,15 @@ export function parseExperimentJson(raw?: unknown) {
 }
 
 export function getExperimentTitle(row: Record<string, any>) {
-  if (row?.title) return row.title as string;
-  const parsed = parseExperimentJson(row?.experiment_json);
-  return parsed?.title?.value ?? row?.experiment_id ?? "Experiment";
+  if (row?.label) return row.label as string;
+  const parsed = parseExperimentJson(row?.item_json);
+  return parsed?.label ?? row?.item_id ?? "Experiment";
 }
 
 export function getExperimentSummary(row: Record<string, any>) {
   if (row?.summary) return row.summary as string;
-  if (row?.description) return row.description as string;
-  const parsed = parseExperimentJson(row?.experiment_json);
-  return parsed?.description ?? undefined;
+  const parsed = parseExperimentJson(row?.item_json);
+  return parsed?.summary ?? undefined;
 }
 
 export async function getExperimentByKey(paperId: string, experimentId: string) {
@@ -28,8 +27,12 @@ export async function getExperimentByKey(paperId: string, experimentId: string) 
   }
 
   const experiment = await (await getAstraClient())
-    .collection("experiments")
-    .findOne({ paper_id: paperId, experiment_id: experimentId });
+    .collection("items")
+    .findOne({
+      paper_id: paperId,
+      item_id: experimentId,
+      item_kind: "experiment",
+    });
 
   return experiment;
 }
@@ -40,8 +43,8 @@ export async function listExperimentsByPaper(paperId: string) {
   }
 
   const experiments = await (await getAstraClient())
-    .collection("experiments")
-    .find({ paper_id: paperId })
+    .collection("items")
+    .find({ paper_id: paperId, item_kind: "experiment" })
     .toArray();
 
   return experiments;

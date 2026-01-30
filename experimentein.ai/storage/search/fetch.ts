@@ -3,10 +3,11 @@ import type { QdrantPayload, SearchMode } from "./types";
 import { extractIds, groupIds } from "./normalize";
 
 const modeMap: Record<SearchMode, { collection: string; idKey: string }> = {
-  papers: { collection: "hblocks_papers", idKey: "paper_id" },
-  sections: { collection: "hblocks_sections", idKey: "section_id" },
-  blocks: { collection: "hblocks_blocks", idKey: "block_id" },
-  experiments: { collection: "experiments", idKey: "experiment_id" },
+  papers: { collection: "papers", idKey: "paper_id" },
+  sections: { collection: "sections", idKey: "section_id" },
+  blocks: { collection: "blocks", idKey: "block_id" },
+  items: { collection: "items", idKey: "item_id" },
+  experiments: { collection: "items", idKey: "item_id" },
 };
 
 export function getModeConfig(mode: SearchMode) {
@@ -24,7 +25,7 @@ export async function fetchByMode(
     const ids = extractIds(payloads, idKey);
     if (!ids.length) return [];
     return astra
-      .collection("hblocks_papers")
+      .collection("papers")
       .find({ paper_id: { $in: ids } })
       .toArray();
   }
@@ -35,7 +36,7 @@ export async function fetchByMode(
       await Promise.all(
         Object.entries(grouped).map(([paperId, sectionIds]) =>
           astra
-            .collection("hblocks_sections")
+            .collection("sections")
             .find({ paper_id: paperId, section_id: { $in: sectionIds } })
             .toArray(),
         ),
@@ -50,7 +51,7 @@ export async function fetchByMode(
       await Promise.all(
         Object.entries(grouped).map(([paperId, blockIds]) =>
           astra
-            .collection("hblocks_blocks")
+            .collection("blocks")
             .find({ paper_id: paperId, block_id: { $in: blockIds } })
             .toArray(),
         ),
@@ -59,13 +60,13 @@ export async function fetchByMode(
     return rows;
   }
 
-  const grouped = groupIds(payloads, "paper_id", "experiment_id");
+  const grouped = groupIds(payloads, "paper_id", "item_id");
   const rows = (
     await Promise.all(
       Object.entries(grouped).map(([paperId, experimentIds]) =>
         astra
-          .collection("experiments")
-          .find({ paper_id: paperId, experiment_id: { $in: experimentIds } })
+          .collection("items")
+          .find({ paper_id: paperId, item_id: { $in: experimentIds } })
           .toArray(),
       ),
     )

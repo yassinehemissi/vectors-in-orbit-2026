@@ -12,7 +12,7 @@ type ResearchCollection = {
 };
 
 type ResearchSaveButtonProps = {
-  kind: "experiment" | "paper" | "section" | "block";
+  kind: "experiment" | "paper" | "section" | "block" | "item";
   itemId: string;
   paperId?: string;
 };

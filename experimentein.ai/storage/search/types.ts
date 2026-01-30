@@ -1,4 +1,9 @@
-export type SearchMode = "papers" | "sections" | "blocks" | "experiments";
+export type SearchMode =
+  | "papers"
+  | "sections"
+  | "blocks"
+  | "items"
+  | "experiments";
 
 export type NormalizedSearchResult = {
   kind: SearchMode;
