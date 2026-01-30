@@ -3,7 +3,7 @@ import { ResearchSaveButton } from "@/components/dashboard/research-save";
 import { getItemByKey, getItemSummary, getItemTitle, parseItemJson } from "@/storage/items";
 import { getBlocksByIds } from "@/storage/blocks";
 import { getPaperUploads } from "@/storage/papers-data";
-import { EvidenceBlocksList } from "@/components/dashboard/evidence-blocks";
+import { EvidenceBlocksList, type EvidenceBlock } from "@/components/dashboard/evidence-blocks";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getPaperById } from "@/storage/papers";
@@ -47,6 +47,15 @@ export default async function ItemDetailPage({
     ? await getBlocksByIds(item.paper_id, sourceBlocks)
     : [];
   const uploads = await getPaperUploads(item.paper_id);
+  const evidenceBlocks: EvidenceBlock[] = blocks.map((block) => ({
+    block_id: block.block_id ?? "",
+    section_id: block.section_id,
+    text: block.text,
+    type: block.type,
+    block_index: block.block_index,
+    source: block.source,
+    docling_ref: block.docling_ref,
+  }));
 
   return (
     <>
@@ -66,7 +75,7 @@ export default async function ItemDetailPage({
             <p className="text-xs uppercase text-neutral-400">Evidence blocks</p>
             <div className="mt-4">
               <EvidenceBlocksList
-                blocks={blocks}
+                blocks={evidenceBlocks}
                 paperId={item.paper_id}
                 uploads={uploads}
               />

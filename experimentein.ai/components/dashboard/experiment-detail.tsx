@@ -33,11 +33,17 @@ export function ExperimentDetailClient({
     setIsOpen(true);
     setIsLoading(true);
     try {
-      const data = (await getBlocksByIds(
-        paperId,
-        evidenceIds,
-      )) as EvidenceBlock[];
-      setBlocks(data);
+      const data = await getBlocksByIds(paperId, evidenceIds);
+      const mapped = data.map((block) => ({
+        block_id: block.block_id ?? "",
+        section_id: block.section_id,
+        text: block.text,
+        type: block.type,
+        block_index: block.block_index,
+        source: block.source,
+        docling_ref: block.docling_ref,
+      }));
+      setBlocks(mapped);
       const media = await getPaperUploads(paperId);
       setUploads(media);
     } finally {

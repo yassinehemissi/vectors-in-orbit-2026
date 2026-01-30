@@ -7,7 +7,7 @@ import { getSearchHistoryResults } from "@/storage/search/history";
 
 export async function GET(
   _request: Request,
-  { params }: { params: { historyId: string } },
+  { params }: { params: Promise<{ historyId: string }> },
 ) {
   const resolvedParams = await params;
   const session = await getServerSession(authOptions);

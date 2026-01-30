@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@datastax/astra-db-ts": "^2.1.2",
+    "@google/adk": "^0.2.5",
     "@qdrant/js-client-rest": "^1.11.0",
     "mongoose": "^9.1.5",
     "next": "16.1.4",
@@ -18,6 +19,7 @@
     "react-dom": "19.2.3"
   },
   "devDependencies": {
+    "@google/adk-devtools": "^0.2.5",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

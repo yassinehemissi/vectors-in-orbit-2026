@@ -113,9 +113,6 @@ export function EvidenceBlocksList({
   const [mediaCaption, setMediaCaption] = useState<string | null>(null);
   const [pdfOpen, setPdfOpen] = useState(false);
   const [pdfRefs, setPdfRefs] = useState<string[]>([]);
-  const [pdfFallbackText, setPdfFallbackText] = useState<string | undefined>(
-    undefined,
-  );
 
   const openPreview = async (kind: "paper" | "section", id?: string) => {
     if (!id) return;
@@ -167,7 +164,6 @@ export function EvidenceBlocksList({
         onClose={() => setPdfOpen(false)}
         paperId={paperId}
         doclingRefs={pdfRefs}
-        fallbackText={pdfFallbackText}
         title="Evidence highlight"
         highlightLabel="Evidence"
       />
@@ -193,7 +189,6 @@ export function EvidenceBlocksList({
         }}
         onOpenPdf={(ref) => {
           setPdfRefs(ref ? [ref] : []);
-          setPdfFallbackText(undefined);
           setPdfOpen(true);
         }}
       />

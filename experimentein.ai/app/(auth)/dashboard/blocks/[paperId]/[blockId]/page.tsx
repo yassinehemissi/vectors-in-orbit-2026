@@ -1,7 +1,7 @@
 import { DashboardTopBar } from "@/components/dashboard/dashboard-topbar";
 import { getBlockById } from "@/storage/blocks";
 import { getPaperUploads } from "@/storage/papers-data";
-import { EvidenceBlocksList } from "@/components/dashboard/evidence-blocks";
+import { EvidenceBlocksList, type EvidenceBlock } from "@/components/dashboard/evidence-blocks";
 import Link from "next/link";
 import { ResearchSaveButton } from "@/components/dashboard/research-save";
 import { getServerSession } from "next-auth";
@@ -21,6 +21,17 @@ export default async function BlockPage({ params }: BlockPageProps) {
   const resolvedParams = await params;
   const block = await getBlockById(resolvedParams.paperId, resolvedParams.blockId);
   const uploads = block ? await getPaperUploads(block.paper_id) : { figures: [], tables: [] };
+  const evidenceBlock: EvidenceBlock | null = block
+    ? {
+        block_id: block.block_id ?? resolvedParams.blockId,
+        section_id: block.section_id,
+        text: block.text,
+        type: block.type,
+        block_index: block.block_index,
+        source: block.source,
+        docling_ref: block.docling_ref,
+      }
+    : null;
 
   if (!block) {
     return (
@@ -94,7 +105,7 @@ export default async function BlockPage({ params }: BlockPageProps) {
           {block.type === "figure" || block.type === "table" ? (
             <div className="mt-6">
               <EvidenceBlocksList
-                blocks={[block]}
+                blocks={evidenceBlock ? [evidenceBlock] : []}
                 paperId={block.paper_id}
                 uploads={uploads}
                 showActions={false}

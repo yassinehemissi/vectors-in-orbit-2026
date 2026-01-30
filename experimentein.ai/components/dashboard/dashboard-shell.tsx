@@ -3,6 +3,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
+import { DashboardAgent } from "@/components/dashboard/agent-window";
 
 interface DashboardShellProps {
   children: ReactNode;
@@ -61,6 +62,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
           </div>
         </div>
       ) : null}
+
+      <DashboardAgent />
     </>
   );
 }

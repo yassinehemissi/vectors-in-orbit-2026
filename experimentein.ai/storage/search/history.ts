@@ -93,7 +93,7 @@ export async function getSearchHistoryResults({
     return null;
   }
 
-  const results = history.results ?? [];
+  const results = (history.results ?? []) as SearchHistoryResult[];
   const astra = await getAstraClient();
 
   const paperIds = results

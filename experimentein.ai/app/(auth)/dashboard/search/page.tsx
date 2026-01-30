@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import DashboardSearchClient from "@/app/(auth)/dashboard/search/search-client";
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardSearchPage() {
-  return <DashboardSearchClient />;
+  return (
+    <Suspense fallback={null}>
+      <DashboardSearchClient />
+    </Suspense>
+  );
 }
