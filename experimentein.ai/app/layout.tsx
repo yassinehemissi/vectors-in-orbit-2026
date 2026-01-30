@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Manrope, Playfair_Display } from "next/font/google";
-import "./globals.css";
+import "@/app/globals.css";
+import { AuthProvider } from "@/components/auth-provider";
 
 const manrope = Manrope({
   variable: "--font-sans",
@@ -22,7 +23,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Experimentein.ai",
-  description: "Biology-first semantic experiment discovery with traceable evidence.",
+  description: "Biology-first semantic item discovery with traceable evidence.",
 };
 
 export default function RootLayout({
@@ -35,7 +36,7 @@ export default function RootLayout({
       <body
         className={`${manrope.variable} ${playfair.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

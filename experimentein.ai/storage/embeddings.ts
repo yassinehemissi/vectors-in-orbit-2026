@@ -1,0 +1,86 @@
+"use server"
+
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const OPENROUTER_EMBEDDING_MODEL = process.env.OPENROUTER_EMBEDDING_MODEL;
+const OPENROUTER_EMBEDDING_DIM = Number(
+  process.env.OPENROUTER_EMBEDDING_DIM ?? 1024
+);
+
+if (!OPENROUTER_API_KEY || !OPENROUTER_EMBEDDING_MODEL) {
+  throw new Error("OpenRouter embedding env vars are missing.");
+}
+
+export async function embedText(text: string) {
+  if (!text.trim()) {
+    return [];
+  }
+
+  const response = await fetch("https://openrouter.ai/api/v1/embeddings", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: OPENROUTER_EMBEDDING_MODEL,
+      input: text,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Embedding failed: ${errorText}`);
+  }
+
+  const data = (await response.json()) as {
+    data: Array<{ embedding: number[] }>;
+    usage?: Record<string, unknown>;
+  };
+
+  const embedding = data.data[0]?.embedding ?? [];
+  if (embedding.length !== OPENROUTER_EMBEDDING_DIM) {
+    throw new Error(
+      `Embedding size mismatch: ${embedding.length} (expected ${OPENROUTER_EMBEDDING_DIM})`
+    );
+  }
+
+  return embedding;
+}
+
+export async function embedTextWithUsage(text: string) {
+  if (!text.trim()) {
+    return { embedding: [], usage: null };
+  }
+
+  const response = await fetch("https://openrouter.ai/api/v1/embeddings", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: OPENROUTER_EMBEDDING_MODEL,
+      input: text,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Embedding failed: ${errorText}`);
+  }
+
+  const data = (await response.json()) as {
+    data: Array<{ embedding: number[] }>;
+    usage?: Record<string, unknown>;
+  };
+
+  const embedding = data.data[0]?.embedding ?? [];
+  if (embedding.length !== OPENROUTER_EMBEDDING_DIM) {
+    throw new Error(
+      `Embedding size mismatch: ${embedding.length} (expected ${OPENROUTER_EMBEDDING_DIM})`
+    );
+  }
+
+  return { embedding, usage: data.usage ?? null };
+}
+
