@@ -18,7 +18,7 @@ class HybridEvidenceRetriever:
     config: BlocksToItemsConfig
     embedder: Embedder
 
-    def retrieve(self, paper_id: str, candidate: Candidate, blocks: List[Block]) -> List[EvidenceBlock]:
+    def retrieve(self, paper_id: str, candidate: Candidate) -> List[EvidenceBlock]:
         queries = [q for q in (candidate.evidence_hints or []) if q]
         base = " ".join([str(candidate.label or ""), str(candidate.summary or "")]).strip()
         if base:
@@ -26,8 +26,8 @@ class HybridEvidenceRetriever:
         if not queries:
             return []
 
-        block_map: Dict[str, Block] = {b.block_id: b for b in blocks}
         out: Dict[str, EvidenceBlock] = {}
+        hit_block_ids: List[str] = []
 
         for q in queries:
             vector = self.embedder.embed([q])[0]
@@ -37,16 +37,32 @@ class HybridEvidenceRetriever:
                 block_id = payload.get("block_id")
                 if not block_id:
                     continue
-                b = block_map.get(block_id)
+                hit_block_ids.append(block_id)
                 out.setdefault(
                     block_id,
                     EvidenceBlock(
                         block_id=block_id,
-                        section_id=(payload.get("section_id") or (b.section_id if b else None)),
-                        type=(payload.get("type") or (b.type if b else None)),
-                        text=(b.text if b else None),
+                        section_id=payload.get("section_id"),
+                        type=payload.get("type"),
+                        text=None,
                     ),
                 )
+
+        if hit_block_ids:
+            fetched = self._fetch_blocks_by_ids(paper_id, hit_block_ids)
+            for b in fetched:
+                ev = out.get(b.block_id)
+                if not ev:
+                    out[b.block_id] = EvidenceBlock(
+                        block_id=b.block_id,
+                        section_id=b.section_id,
+                        type=b.type,
+                        text=b.text,
+                    )
+                else:
+                    ev.section_id = ev.section_id or b.section_id
+                    ev.type = ev.type or b.type
+                    ev.text = ev.text or b.text
 
         expanded = self._expand_neighbors(paper_id, list(out.values()))
         return expanded
@@ -73,29 +89,60 @@ class HybridEvidenceRetriever:
             )
         return res.points
 
+    def _fetch_blocks_by_ids(self, paper_id: str, block_ids: List[str]) -> List[Block]:
+        if not block_ids:
+            return []
+        cluster, session = AstraClientFactory().create()
+        blocks: List[Block] = []
+        try:
+            for chunk in _chunk(block_ids, 50):
+                placeholders = ", ".join(["%s"] * len(chunk))
+                query = (
+                    "SELECT block_id, section_id, type, text, block_index "
+                    f"FROM blocks WHERE paper_id = %s AND block_id IN ({placeholders})"
+                )
+                params = [paper_id] + list(chunk)
+                rows = session.execute(query, params)
+                for r in rows:
+                    blocks.append(
+                        Block(
+                            block_id=r.block_id,
+                            section_id=r.section_id,
+                            type=r.type,
+                            text=r.text,
+                            block_index=r.block_index,
+                        )
+                    )
+        finally:
+            cluster.shutdown()
+        return blocks
+
     def _expand_neighbors(self, paper_id: str, evidence_blocks: List[EvidenceBlock]) -> List[EvidenceBlock]:
         if not evidence_blocks:
             return []
         by_section: Dict[str, List[Block]] = {}
-        session = AstraClientFactory().create()
-        for ev in evidence_blocks:
-            if not ev.section_id or ev.section_id in by_section:
-                continue
-            rows = session.execute(
-                "SELECT block_id, section_id, type, text, block_index FROM blocks WHERE paper_id = ? AND section_id = ? ALLOW FILTERING",
-                (paper_id, ev.section_id),
-            )
-            blist = [
-                Block(
-                    block_id=r.block_id,
-                    section_id=r.section_id,
-                    type=r.type,
-                    text=r.text,
-                    block_index=r.block_index,
+        cluster, session = AstraClientFactory().create()
+        try:
+            for ev in evidence_blocks:
+                if not ev.section_id or ev.section_id in by_section:
+                    continue
+                rows = session.execute(
+                    "SELECT block_id, section_id, type, text, block_index FROM blocks WHERE paper_id = ? AND section_id = ? ALLOW FILTERING",
+                    (paper_id, ev.section_id),
                 )
-                for r in rows
-            ]
-            by_section[ev.section_id] = sorted(blist, key=lambda b: b.block_index)
+                blist = [
+                    Block(
+                        block_id=r.block_id,
+                        section_id=r.section_id,
+                        type=r.type,
+                        text=r.text,
+                        block_index=r.block_index,
+                    )
+                    for r in rows
+                ]
+                by_section[ev.section_id] = sorted(blist, key=lambda b: b.block_index)
+        finally:
+            cluster.shutdown()
 
         expanded: Dict[str, EvidenceBlock] = {b.block_id: b for b in evidence_blocks if b.block_id}
         for ev in evidence_blocks:
@@ -122,3 +169,7 @@ class HybridEvidenceRetriever:
                         ),
                     )
         return list(expanded.values())
+
+
+def _chunk(items: List[str], size: int) -> List[List[str]]:
+    return [items[i : i + size] for i in range(0, len(items), size)]

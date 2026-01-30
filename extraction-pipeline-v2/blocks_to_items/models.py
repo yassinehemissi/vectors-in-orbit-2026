@@ -30,6 +30,7 @@ class Candidate:
     proposed_item_kind: Optional[str]
     anchors: List[str]
     source_block_ids: List[str]
+    confidence: float
 
 
 @dataclass
