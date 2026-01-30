@@ -1,0 +1,9 @@
+{
+  "tables": [
+    "papers_data.cql",
+    "blocks.cql",
+    "sections.cql",
+    "papers.cql",
+    "items.cql"
+  ]
+}
