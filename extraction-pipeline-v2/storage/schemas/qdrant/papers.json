@@ -1,0 +1,20 @@
+{
+  "collection": "papers",
+  "vector_size": 1024,
+  "distance": "COSINE",
+  "on_disk_payload": true,
+  "hnsw": {
+    "m": 16,
+    "ef_construct": 128,
+    "full_scan_threshold": 10000
+  },
+  "optimizers": {
+    "indexing_threshold": 5000,
+    "memmap_threshold": 5000
+  },
+  "payload_indexes": [
+    { "field_name": "paper_id", "field_schema": "keyword" },
+    { "field_name": "paper_uuid", "field_schema": "keyword" },
+    { "field_name": "summary_chars", "field_schema": "integer" }
+  ]
+}
