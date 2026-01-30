@@ -17,5 +17,5 @@ Transforms stored paper structure into normalized sections and blocks, then pers
 - Astra records for papers/sections/blocks
 - Qdrant vectors for papers/sections/blocks
 
-© BABYNEERS
+ BABYNEERS
 *This is a generated AI README under instructions.*
