@@ -5,7 +5,7 @@ Experimentein.ai is a research-first platform for exploring scientific papers, i
 ## Features
 
 - Evidence-first search across papers, sections, blocks, and items
-- Structured research collections (“Research”) with saved items
+- Structured research collections (Research) with saved items
 - Credits system with ledger + receipts
 - Activity tracking and recent actions
 - PDF evidence viewer with highlights
@@ -24,11 +24,11 @@ Experimentein.ai is a research-first platform for exploring scientific papers, i
 
 ## Project Structure
 
-- `app/` – Next.js routes (static, guest, auth)
-- `components/` – UI components
-- `storage/` – Data access + search
-- `models/` – Mongoose schemas
-- `ai/` – ADK agent + OpenRouter adapter
+- `app/`  Next.js routes (static, guest, auth)
+- `components/`  UI components
+- `storage/`  Data access + search
+- `models/`  Mongoose schemas
+- `ai/`  ADK agent + OpenRouter adapter
 
 ## Getting Started
 
