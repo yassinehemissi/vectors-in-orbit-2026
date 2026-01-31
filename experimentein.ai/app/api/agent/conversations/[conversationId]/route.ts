@@ -17,16 +17,15 @@ export async function GET(_: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const resolvedParams = await params;
+  if (!mongoose.isValidObjectId(resolvedParams.conversationId)) {
+    return NextResponse.json({ error: "Invalid conversation id" }, { status: 400 });
+  }
+
   await connectToDatabase();
   const user = await User.findOne({ email: session.user.email });
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
-
-  const resolvedParams = await params;
-
-  if (!mongoose.isValidObjectId(resolvedParams.conversationId)) {
-    return NextResponse.json({ error: "Invalid conversation id" }, { status: 400 });
   }
 
   const conversation = await AgentConversation.findOne({
@@ -58,4 +57,36 @@ export async function GET(_: Request, { params }: RouteParams) {
       createdAt: message.createdAt,
     })),
   });
+}
+
+export async function DELETE(_: Request, { params }: RouteParams) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const resolvedParams = await params;
+  if (!mongoose.isValidObjectId(resolvedParams.conversationId)) {
+    return NextResponse.json({ error: "Invalid conversation id" }, { status: 400 });
+  }
+
+  await connectToDatabase();
+  const user = await User.findOne({ email: session.user.email });
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  const conversation = await AgentConversation.findOne({
+    _id: resolvedParams.conversationId,
+    userId: user._id,
+  });
+
+  if (!conversation) {
+    return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+  }
+
+  await AgentMessage.deleteMany({ conversationId: conversation._id });
+  await AgentConversation.deleteOne({ _id: conversation._id });
+
+  return NextResponse.json({ success: true });
 }

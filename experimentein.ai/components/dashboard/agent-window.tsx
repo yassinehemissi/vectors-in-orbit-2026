@@ -18,6 +18,8 @@ interface AgentConversation {
 }
 
 const SESSION_STORAGE_KEY = "experimentein_agent_session";
+const CONVERSATION_STORAGE_KEY = "experimentein_agent_conversation";
+const AUTOSTART_STORAGE_KEY = "experimentein_agent_autostart";
 const MODEL_STORAGE_KEY = "experimentein_agent_model";
 
 function escapeHtml(input: string) {
@@ -136,12 +138,29 @@ export function DashboardAgent() {
 
   useEffect(() => {
     const storedSession = window.localStorage.getItem(SESSION_STORAGE_KEY);
+    const storedConversation = window.localStorage.getItem(
+      CONVERSATION_STORAGE_KEY
+    );
+    const autoStart = window.localStorage.getItem(AUTOSTART_STORAGE_KEY);
     const storedModel = window.localStorage.getItem(MODEL_STORAGE_KEY);
     if (storedSession) {
       setSessionId(storedSession);
     }
+    if (storedConversation) {
+      setActiveConversationId(storedConversation);
+      setIsOpen(true);
+      void handleLoadConversation({
+        id: storedConversation,
+        sessionId: storedSession ?? "",
+        title: "Conversation",
+      });
+    }
     if (storedModel && AGENT_MODELS.includes(storedModel)) {
       setModel(storedModel);
+    }
+    if (autoStart === "1") {
+      setIsOpen(true);
+      window.localStorage.removeItem(AUTOSTART_STORAGE_KEY);
     }
   }, []);
 
@@ -166,8 +185,11 @@ export function DashboardAgent() {
   const handleLoadConversation = async (conversation: AgentConversation) => {
     setIsHistoryOpen(false);
     setActiveConversationId(conversation.id);
-    setSessionId(conversation.sessionId);
-    window.localStorage.setItem(SESSION_STORAGE_KEY, conversation.sessionId);
+    if (conversation.sessionId) {
+      setSessionId(conversation.sessionId);
+      window.localStorage.setItem(SESSION_STORAGE_KEY, conversation.sessionId);
+    }
+    window.localStorage.setItem(CONVERSATION_STORAGE_KEY, conversation.id);
 
     try {
       const response = await fetch(
@@ -175,8 +197,16 @@ export function DashboardAgent() {
       );
       if (!response.ok) return;
       const data = (await response.json()) as {
+        conversation?: AgentConversation;
         messages?: AgentMessage[];
       };
+      if (data.conversation?.sessionId) {
+        setSessionId(data.conversation.sessionId);
+        window.localStorage.setItem(
+          SESSION_STORAGE_KEY,
+          data.conversation.sessionId
+        );
+      }
       setMessages(data.messages ?? []);
     } catch {
       // ignore
@@ -255,6 +285,7 @@ export function DashboardAgent() {
     setSessionId(null);
     setActiveConversationId(null);
     window.localStorage.removeItem(SESSION_STORAGE_KEY);
+    window.localStorage.removeItem(CONVERSATION_STORAGE_KEY);
   };
 
   const handleModelChange = (value: string) => {
@@ -263,9 +294,9 @@ export function DashboardAgent() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[70]">
+    <div className="fixed inset-0 z-[70] pointer-events-none">
       {isOpen ? (
-        <div className="w-[360px] overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-2xl">
+        <div className="pointer-events-auto fixed right-0 top-0 flex h-full w-full max-w-[420px] flex-col overflow-hidden border-l border-neutral-200 bg-white shadow-2xl">
           <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">
@@ -281,6 +312,12 @@ export function DashboardAgent() {
               >
                 History
               </button>
+              <a
+                className="btn-secondary text-xs"
+                href="/dashboard/agent"
+              >
+                Manage
+              </a>
               <button
                 type="button"
                 className="btn-secondary text-xs"
@@ -354,7 +391,7 @@ export function DashboardAgent() {
 
           <div
             ref={scrollRef}
-            className="h-[420px] space-y-4 overflow-y-auto bg-neutral-50 px-4 py-4 text-sm text-neutral-900"
+            className="flex-1 space-y-4 overflow-y-auto bg-neutral-50 px-4 py-4 text-sm text-neutral-900"
           >
             {messages.length === 0 ? (
               <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-xs text-neutral-500">
@@ -419,13 +456,13 @@ export function DashboardAgent() {
           </div>
         </div>
       ) : (
-        <button
-          type="button"
-          className="rounded-full bg-neutral-900 px-5 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white shadow-lg"
-          onClick={() => setIsOpen(true)}
-        >
-          Agent
-        </button>
+          <button
+            type="button"
+            className="pointer-events-auto fixed bottom-6 right-6 rounded-full bg-neutral-900 px-5 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white shadow-lg"
+            onClick={() => setIsOpen(true)}
+          >
+            Agent
+          </button>
       )}
     </div>
   );

@@ -59,6 +59,12 @@ MONGODB_URI=
 # OpenRouter
 OPENROUTER_API_KEY=
 
+# ADK Flask server
+ADK_SERVER_URL=http://127.0.0.1:8001
+
+# Qdrant MCP (optional)
+MCP_QDRANT_URL=http://127.0.0.1:8000
+
 # Qdrant
 QDRANT_URL=
 QDRANT_API_KEY=

@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { AGENT_MODELS, DEFAULT_AGENT_MODEL } from "@/lib/agent-models";
-import { runAgent } from "@/ai/agent";
 import { connectToDatabase } from "@/lib/mongoose";
 import { User } from "@/models/User";
 import { AgentConversation } from "@/models/AgentConversation";
 import { AgentMessage } from "@/models/AgentMessage";
 import { updateConversationSummary } from "@/ai/summary";
+import { runAgent } from "@/ai/agent";
 
 export async function GET() {
   return NextResponse.json({
@@ -70,43 +70,34 @@ export async function POST(request: Request) {
     .limit(6)
     .lean();
 
-  const orderedRecentMessages = recentMessages.reverse();
-  const trimmedRecentMessages =
-    orderedRecentMessages.length > 0 &&
-    orderedRecentMessages[orderedRecentMessages.length - 1]?.role === "user"
-      ? orderedRecentMessages.slice(0, -1)
-      : orderedRecentMessages;
-
   const result = await runAgent({
     userId: session.user.email,
     sessionId,
     message,
     model,
-    summary: conversation.summary ?? "",
-    recentMessages: trimmedRecentMessages.map((entry) => ({
-        role: entry.role,
-        content: entry.content,
-      })),
   });
 
   await AgentMessage.create({
     userId: user._id,
     conversationId: conversation._id,
     role: "assistant",
-    content: result.reply ?? "",
+    content: result.reply?.trim() || "No response returned.",
     model,
   });
 
-  const updatedSummary = await updateConversationSummary({
+  const updatedSummary = updateConversationSummary({
     previousSummary: conversation.summary ?? "",
     userMessage: message,
     assistantMessage: result.reply ?? "",
-    model,
   });
 
   conversation.summary = updatedSummary;
   conversation.lastMessageAt = new Date();
   await conversation.save();
 
-  return NextResponse.json(result);
+  return NextResponse.json({
+    reply: result.reply ?? "",
+    model,
+    sessionId,
+  });
 }

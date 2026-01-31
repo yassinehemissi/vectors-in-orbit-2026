@@ -1,0 +1,11 @@
+﻿services:
+  - type: web
+    name: mcp-server-qdrant
+    env: python
+    plan: starter
+    rootDir: mcp-server-qdrant-astra
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    envVars:
+      - key: MCP_TRANSPORT
+        value: sse
