@@ -13,6 +13,8 @@ const LINK_RULES = [
   "If you are unsure about an ID, use the template with the placeholder.",
   "Never output empty markdown links like [text]().",
   "If a link is needed but you don't have an ID, include the template as plain text.",
+  "Convert any plain dashboard paths into markdown links like: [Paper Dashboard](/dashboard/papers/[paper_id]).",
+  "Ensure markdown headings use proper spacing (e.g., '### Title') and remove stray punctuation around links.",
   "Keep the response content the same except for fixing/removing links.",
 ];
 
@@ -51,14 +53,26 @@ export function buildLinkFixer(model: string) {
       new HumanMessage(buildPrompt(text)),
     ]);
 
+    const normalized = normalizeMarkdown(extractText(response as BaseMessage));
     return {
       messages: [
         new AIMessage({
-          content: response.content,
+          content: normalized || response.content,
           additional_kwargs: lastAi.additional_kwargs,
           response_metadata: lastAi.response_metadata,
         }),
       ],
     };
   };
+}
+
+function normalizeMarkdown(text: string) {
+  let output = text;
+  output = output.replace(/(^|\n)(#{1,6})([^#\s])/g, "$1$2 $3");
+  output = output.replace(/\s+\./g, ".");
+  output = output.replace(
+    /(^|\n)(\/dashboard\/[^\s)]+)/g,
+    "$1[Dashboard Link]($2)"
+  );
+  return output.trim();
 }

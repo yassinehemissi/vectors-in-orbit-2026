@@ -109,8 +109,11 @@ export async function callMcpTool(name: string, args: Record<string, any>) {
   return response;
 }
 
-export function parseMcpContent(result: any) {
-  if (result?.structuredContent) {
+export function parseMcpContent(
+  result: any,
+  options?: { preferStructured?: boolean }
+) {
+  if (options?.preferStructured !== false && result?.structuredContent) {
     return result.structuredContent;
   }
   if (!result?.content || !Array.isArray(result.content)) return result;

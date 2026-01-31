@@ -32,7 +32,9 @@ export async function runAgent(params: {
 
   if (reply) {
     if (dashboardLinks.length) {
-      const linksBlock = dashboardLinks.map((link) => `- ${link}`).join("\n");
+      const linksBlock = dashboardLinks
+        .map((link) => `- [Dashboard Link](${link})`)
+        .join("\n");
       return {
         reply: `${reply}\n\nDashboard Links:\n${linksBlock}`,
         model,
@@ -48,7 +50,9 @@ export async function runAgent(params: {
 
   if (toolMessages.length) {
     if (dashboardLinks.length) {
-      const linksBlock = dashboardLinks.map((link) => `- ${link}`).join("\n");
+      const linksBlock = dashboardLinks
+        .map((link) => `- [Dashboard Link](${link})`)
+        .join("\n");
       return {
         reply: `Dashboard Links:\n${linksBlock}`,
         model,

@@ -14,7 +14,7 @@ const searchToolSchema = {
 } as const;
 
 function extractVector(response: any) {
-  const payload = parseMcpContent(response);
+  const payload = parseMcpContent(response, { preferStructured: false });
   if (process.env.MCP_DEBUG === "1" || process.env.MCP_DEBUG === "true") {
     console.log("[MCP] embed_texts parsed payload preview");
     try {
