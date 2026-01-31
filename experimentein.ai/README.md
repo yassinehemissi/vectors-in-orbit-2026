@@ -1,16 +1,16 @@
-# Experimentein.ai
+Ôªø# Experimentein.ai
 
 Experimentein.ai is a research-first platform for exploring scientific papers, items, and evidence with traceable provenance.
 
 ## Features
 
 - Evidence-first search across papers, sections, blocks, and items
-- Structured research collections (ìResearchî) with saved items
+- Structured research collections (‚ÄúResearch‚Äù) with saved items
 - Credits system with ledger + receipts
 - Activity tracking and recent actions
 - PDF evidence viewer with highlights
 - Auth via Auth.js (NextAuth) + Google/GitHub providers
-- AI agent powered by OpenRouter via Google ADK
+- AI agent powered by OpenRouter via LangGraph
 
 ## Tech Stack
 
@@ -20,15 +20,15 @@ Experimentein.ai is a research-first platform for exploring scientific papers, i
 - Astra DB (Data API)
 - Qdrant (vector search)
 - Auth.js (NextAuth)
-- Google ADK + OpenRouter
+- LangGraph + OpenRouter
 
 ## Project Structure
 
-- `app/` ñ Next.js routes (static, guest, auth)
-- `components/` ñ UI components
-- `storage/` ñ Data access + search
-- `models/` ñ Mongoose schemas
-- `ai/` ñ ADK agent + OpenRouter adapter
+- `app/` ‚Äì Next.js routes (static, guest, auth)
+- `components/` ‚Äì UI components
+- `storage/` ‚Äì Data access + search
+- `models/` ‚Äì Mongoose schemas
+- `ai/` ‚Äì LangGraph agent + OpenRouter adapter
 
 ## Getting Started
 
@@ -59,12 +59,7 @@ MONGODB_URI=
 # OpenRouter
 OPENROUTER_API_KEY=
 
-# ADK Flask server
-ADK_SERVER_URL=http://127.0.0.1:8001
-
-# Qdrant MCP (optional)
-MCP_QDRANT_URL=http://127.0.0.1:8000
-
+# Qdrant MCP (optional)\r\nMCP_QDRANT_URL=http://127.0.0.1:8000\r\n# Optional MCP auth\r\nMCP_QDRANT_API_KEY=\r\n# Defaults to Authorization if not set\r\nMCP_QDRANT_API_KEY_HEADER=\r\n# JSON object of headers to merge\r\nMCP_QDRANT_HEADERS={}\r\n
 # Qdrant
 QDRANT_URL=
 QDRANT_API_KEY=
@@ -92,7 +87,7 @@ bun run build
 The in-app agent runs inside the Next.js server:
 
 - API route: `POST /api/agent`
-- Uses Google ADK with an OpenRouter-backed LLM
+- Uses LangGraph with an OpenRouter-backed LLM
 - Conversation history saved in MongoDB
 - Summary maintained per conversation
 
@@ -112,3 +107,7 @@ The in-app agent runs inside the Next.js server:
 ## License
 
 Private project.
+
+
+
+

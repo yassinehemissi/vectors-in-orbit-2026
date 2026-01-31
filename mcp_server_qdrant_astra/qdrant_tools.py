@@ -54,17 +54,44 @@ def _search_points(
         except Exception:
             qfilter = qmodels.Filter(**query_filter)
 
-    results = client.search(
-        collection_name=collection_name,
-        query_vector=query_vector,
-        limit=limit,
-        with_payload=with_payload,
-        score_threshold=score_threshold,
-        query_filter=qfilter,
-    )
+    if hasattr(client, "query_points"):
+        results = client.query_points(
+            collection_name=collection_name,
+            query=query_vector,
+            limit=limit,
+            with_payload=with_payload,
+            score_threshold=score_threshold,
+            query_filter=qfilter,
+        )
+        points = getattr(results, "points", results)
+    elif hasattr(client, "search"):
+        results = client.search(
+            collection_name=collection_name,
+            query_vector=query_vector,
+            limit=limit,
+            with_payload=with_payload,
+            score_threshold=score_threshold,
+            query_filter=qfilter,
+        )
+        points = results
+    elif hasattr(client, "search_points"):
+        results = client.search_points(
+            collection_name=collection_name,
+            query_vector=query_vector,
+            limit=limit,
+            with_payload=with_payload,
+            score_threshold=score_threshold,
+            query_filter=qfilter,
+        )
+        points = results
+    else:
+        raise AttributeError("QdrantClient has no search method")
     return {
-        "count": len(results),
-        "results": [r.model_dump() if hasattr(r, "model_dump") else r.dict() for r in results],
+        "count": len(points),
+        "results": [
+            r.model_dump() if hasattr(r, "model_dump") else r.dict() if hasattr(r, "dict") else r
+            for r in points
+        ],
     }
 
 

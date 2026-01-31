@@ -77,6 +77,7 @@ def try_register_mcp_compliance(mcp: Any) -> None:
     async def call_tool_endpoint(payload: Dict[str, Any]) -> Dict[str, Any]:
         name = payload.get("name")
         arguments = _ensure_arguments(payload.get("arguments"))
+        print(f"[mcp] /callTool: {name} args={arguments}", flush=True)
         if not name:
             raise ValueError("name is required")
         if hasattr(mcp, "call_tool"):
