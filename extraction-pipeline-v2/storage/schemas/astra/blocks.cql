@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS blocks (
   text_hash text,
   source text,
   block_index int,
+  docling_ref text,
   section_index int,
   flags text,
   PRIMARY KEY (paper_id, block_id)

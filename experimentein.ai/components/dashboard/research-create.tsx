@@ -20,7 +20,7 @@ export function ResearchCreateButton() {
   return (
     <>
       <button type="button" className="btn-primary" onClick={() => setIsOpen(true)}>
-        New research (5 credits)
+        New research
       </button>
       {isOpen ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 md:items-center">
@@ -47,7 +47,7 @@ export function ResearchCreateButton() {
                 </label>
                 <input
                   name="title"
-                  placeholder="e.g. Protein stability study"
+                  placeholder="e.g. Stability study"
                   className="mt-2 w-full rounded-2xl border border-neutral-200/70 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-400 focus:outline-none"
                   required
                 />
@@ -75,7 +75,7 @@ export function ResearchCreateButton() {
               ) : null}
               <div className="flex items-center justify-between">
                 <span className="text-xs text-neutral-500">
-                  Creating a research costs 5 credits.
+                  Creating research uses credits based on your plan.
                 </span>
                 <SubmitButton />
               </div>

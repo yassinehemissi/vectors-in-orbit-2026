@@ -46,6 +46,9 @@ export default function SignUpPage() {
             <p className="mt-2 text-sm text-neutral-500">
               Start with a free account and upgrade when you need more.
             </p>
+            <p className="mt-1 text-xs text-neutral-500">
+              Note: only GitHub sign-in is currently available.
+            </p>
 
             <form className="mt-8 space-y-4">
               <div>
@@ -54,6 +57,7 @@ export default function SignUpPage() {
                   type="text"
                   placeholder="Dr. Rivera"
                   className="mt-2 w-full rounded-2xl border border-neutral-200/70 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-400 focus:outline-none"
+                  disabled
                 />
               </div>
               <div>
@@ -62,6 +66,7 @@ export default function SignUpPage() {
                   type="email"
                   placeholder="you@lab.com"
                   className="mt-2 w-full rounded-2xl border border-neutral-200/70 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-400 focus:outline-none"
+                  disabled
                 />
               </div>
               <div>
@@ -70,9 +75,10 @@ export default function SignUpPage() {
                   type="password"
                   placeholder="••••••••"
                   className="mt-2 w-full rounded-2xl border border-neutral-200/70 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-400 focus:outline-none"
+                  disabled
                 />
               </div>
-              <button type="submit" className="btn-primary w-full">
+              <button type="submit" className="btn-primary w-full" disabled>
                 Create account
               </button>
             </form>
@@ -86,7 +92,7 @@ export default function SignUpPage() {
               <div className="mt-4 grid gap-3">
                 <button
                   type="button"
-                  className="btn-secondary w-full"
+                  className="btn-secondary w-full" disabled
                   onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
                 >
                   Continue with Google

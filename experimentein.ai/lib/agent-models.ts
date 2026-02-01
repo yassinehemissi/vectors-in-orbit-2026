@@ -3,7 +3,7 @@ export const AGENT_MODELS = [
   "openai/gpt-4o-mini",
   "anthropic/claude-3.5-sonnet",
   "anthropic/claude-3.5-haiku",
-  "google/gemini-2.0-flash",
+  "google/gemini-2.5-flash-lite",
   "meta-llama/llama-3.1-70b-instruct",
   "mistralai/mistral-large",
   "deepseek/deepseek-r1",

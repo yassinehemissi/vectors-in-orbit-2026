@@ -18,6 +18,7 @@ filesRouter.get("/exists/:hash", async (req, res) => {
     const exists = files.files.some((f) => f.name?.startsWith(`[${hash}]`));
     return json(res, { exists });
   } catch (err) {
+    console.log(err)
     return json(res, { exists: false, error: String(err) }, 200);
   }
 });
@@ -51,6 +52,7 @@ filesRouter.post("/upload", upload.single("file"), async (req, res) => {
     const url = r.data?.ufsUrl || r.ufsUrl || null;
     return json(res, { hash, path, url });
   } catch (err) {
+    console.log(err)
     return error(res, String(err), 500);
   }
 });

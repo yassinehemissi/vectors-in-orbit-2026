@@ -55,9 +55,9 @@ const featureCards = [
       "Align items side-by-side to spot deltas, conflicts, and gaps instantly.",
   },
   {
-    title: "Protein-aware enrichment",
+    title: "Domain-aware enrichment",
     description:
-      "Optional bundles appear only when proteins are detected, with graceful fallbacks.",
+      "Optional bundles appear when domain signals are detected, with graceful fallbacks.",
   },
   {
     title: "Credit-safe AI",
@@ -67,9 +67,9 @@ const featureCards = [
 ];
 
 const heroSignals = [
-  { label: "Papers indexed", value: "12k+" },
-  { label: "Evidence-linked fields", value: "100%" },
-  { label: "Tokens per credit", value: "1,000" },
+  { label: "Evidence-linked fields", detail: "Always traceable to sources." },
+  { label: "Cross-paper comparisons", detail: "Spot conflicts fast." },
+  { label: "Credit visibility", detail: "Usage stays transparent." },
 ];
 
 const partnerLogos = [
@@ -108,12 +108,12 @@ export default function Home() {
               teams can decide faster without losing the evidence.
             </p>
             <div className="flex flex-wrap gap-3">
-              <button type="button" className="btn-primary">
+              <a className="btn-primary" href="/sign-up">
                 Start exploring
-              </button>
-              <button type="button" className="btn-secondary">
+              </a>
+              <a className="btn-secondary" href="#tour">
                 Watch product tour
-              </button>
+              </a>
             </div>
             <div className="grid gap-3 pt-4 text-sm text-neutral-500 md:grid-cols-3">
               {heroSignals.map((signal) => (
@@ -124,9 +124,7 @@ export default function Home() {
                   <p className="text-xs uppercase text-neutral-400">
                     {signal.label}
                   </p>
-                  <p className="text-lg font-semibold text-neutral-900">
-                    {signal.value}
-                  </p>
+                  <p className="text-sm text-neutral-600">{signal.detail}</p>
                 </div>
               ))}
             </div>
@@ -139,22 +137,22 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs uppercase text-neutral-400">
-                    Featured item
+                    Item preview
                   </p>
                   <h2 className="text-xl font-semibold text-neutral-900">
-                    Protein stability shift in glycolytic mutants
+                    Example evidence-linked item card
                   </h2>
                 </div>
                 <span className="rounded-full bg-black/70 px-2 py-1 text-[11px] text-white">
-                  300 pts
+                  Preview
                 </span>
               </div>
               <div className="mt-5 grid gap-3">
                 {[
-                  "Goal: Boost thermal stability in glycolytic mutants.",
-                  "Setup: CRISPRa induction, 48h window.",
-                  "Metrics: Protein half-life, folding efficiency.",
-                  "Results: Stability improved by 1.8x vs baseline.",
+                  "Goal: Summarize the key claim from the paper.",
+                  "Setup: Capture inputs, constraints, and evidence.",
+                  "Metrics: Track outcomes and confidence.",
+                  "Results: Link every claim to a block.",
                 ].map((item) => (
                   <div
                     key={item}
@@ -166,9 +164,9 @@ export default function Home() {
               </div>
               <div className="mt-5 flex items-center justify-between text-xs text-neutral-500">
                 <span>Evidence blocks linked</span>
-                <button type="button" className="btn-primary px-3 py-1 text-xs">
+                <a className="btn-primary px-3 py-1 text-xs" href="#evidence">
                   View evidence
-                </button>
+                </a>
               </div>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
@@ -186,13 +184,13 @@ export default function Home() {
               </div>
               <div className="rounded-3xl border border-neutral-200/70 bg-white/90 p-4 shadow-sm">
                 <p className="text-xs uppercase text-neutral-400">
-                  Protein bundle
+                  Specialized bundles
                 </p>
                 <h3 className="mt-2 text-lg font-semibold text-neutral-900">
                   Optional enrichment layers
                 </h3>
                 <p className="mt-2 text-sm text-neutral-600">
-                  Enrich only when proteins are detected, with graceful
+                  Enrich only when domain signals are detected, with graceful
                   fallbacks.
                 </p>
               </div>
@@ -284,13 +282,13 @@ export default function Home() {
                 </p>
                 <ul className="mt-3 space-y-3 text-sm text-neutral-600">
                   <li className="rounded-2xl border border-neutral-200/70 bg-neutral-50 p-3">
-                    Methods section, block 12 - setup details and reagents
+                    Methods section, key block - setup details and reagents
                   </li>
                   <li className="rounded-2xl border border-neutral-200/70 bg-neutral-50 p-3">
-                    Results section, block 7 - 1.8x stability improvement
+                    Results section, key block - stability improvement noted
                   </li>
                   <li className="rounded-2xl border border-neutral-200/70 bg-neutral-50 p-3">
-                    Supplement figure, block 3 - confidence baseline
+                    Supplement figure, key block - confidence baseline
                   </li>
                 </ul>
               </div>
@@ -301,22 +299,22 @@ export default function Home() {
                   {
                     title: "Goal",
                     status: "Found in paper",
-                    confidence: "0.86",
+                    confidence: "High",
                   },
                   {
                     title: "Setup",
                     status: "Found in paper",
-                    confidence: "0.79",
+                    confidence: "Medium",
                   },
                   {
                     title: "Dataset",
                     status: "Not found in paper",
-                    confidence: "--",
+                    confidence: "—",
                   },
                   {
                     title: "Metrics",
                     status: "Found in paper",
-                    confidence: "0.82",
+                    confidence: "High",
                   },
                 ].map((slot) => (
                   <div
@@ -339,7 +337,7 @@ export default function Home() {
                 ))}
               </div>
               <button type="button" className="btn-primary mt-6 w-full">
-                Fill missing fields (120 pts)
+                Fill missing fields
               </button>
             </div>
           </div>
@@ -442,6 +440,9 @@ export default function Home() {
                       <h3 className="font-display text-2xl font-semibold text-neutral-900">
                         Sign in
                       </h3>
+                      <p className="mt-1 text-xs text-neutral-500">
+                        Note: only GitHub sign-in is currently available.
+                      </p>
                     </div>
                     <button
                       type="button"
@@ -460,6 +461,7 @@ export default function Home() {
                         type="email"
                         placeholder="you@lab.com"
                         className="mt-2 w-full rounded-2xl border border-neutral-200/70 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-400 focus:outline-none"
+                        disabled
                       />
                     </div>
                     <div>
@@ -470,9 +472,10 @@ export default function Home() {
                         type="password"
                         placeholder="••••••••"
                         className="mt-2 w-full rounded-2xl border border-neutral-200/70 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-400 focus:outline-none"
+                        disabled
                       />
                     </div>
-                    <button type="submit" className="btn-primary w-full">
+                    <button type="submit" className="btn-primary w-full" disabled>
                       Continue
                     </button>
                   </form>
@@ -483,15 +486,16 @@ export default function Home() {
                       <span className="h-px w-full bg-neutral-200/70" />
                     </div>
                     <div className="mt-3 grid gap-3">
-                      <button
-                        type="button"
-                        className="btn-secondary w-full"
-                        onClick={() =>
-                          signIn("google", { callbackUrl: "/dashboard" })
-                        }
-                      >
-                        Continue with Google
-                      </button>
+                        <button
+                          type="button"
+                          className="btn-secondary w-full"
+                          onClick={() =>
+                            signIn("google", { callbackUrl: "/dashboard" })
+                          }
+                          disabled
+                        >
+                          Continue with Google
+                        </button>
                       <button
                         type="button"
                         className="btn-secondary w-full"

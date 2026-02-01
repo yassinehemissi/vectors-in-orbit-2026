@@ -1,164 +1,129 @@
-# Babyneers - Vectors in Orbit 2026
+# Babyneers  Vectors in Orbit 2026
+
+```mermaid
+flowchart LR
+    EP[Extraction <i>extraction-pipeline-v2</i>]
+    APP[experimentein.ai]
+    LGA[lang-graph-agent]
+    SCR[scrapper-service]
+    MCP[mcp_server_qdrant_astra]
+    GR[grobid-instance]
+    DS[Docling <i>docling-serve</i>]
+    AXQ[(Astra-x-Qdrant)]
+    MDB[(MongoDB)]
+    UT[(UploadThing)]
+    PDF[Papers]
+  PDF --> DS
+  PDF --> GR
+  APP --> LGA
+  APP --> UT
+  EP --> UT
+  LGA-->MCP
+  MCP --> AXQ
+  AXQ --> MCP
+  AXQ --> APP
+  APP --> MDB
+  MDB --> APP
+  APP --> AXQ
+  AXQ --> EP
+  EP --> AXQ
+  MCP --> LGA
+  EP --> APP
+  SCR --> EP
+  GR --> EP
+  DS --> EP
+```
 
 ## Introduction
 
-This repository documents the work of the Babyneers team during the Vectors in Orbit 2026 hackathon (GDC SupCom x FST, partnered with Qdrant).
+This repository documents the work of the **Babyneers Team** during the **Vectors in Orbit 2026** hackathon (GDC SupCom x FST, with Qdrant partnership).
 
-We developed Experimentein.ai, a research-first platform for exploring scientific papers, items, and evidence with traceable provenance. The system combines an extraction pipeline, storage services, and a Next.js application to make evidence-centric discovery practical.
+We built **Experimentein.ai**, a platform for extracting, indexing, and discovering protein experiments from scientific literature using vector search and LLM-powered parsing. The system treats experiments as first-class entities and keeps provenance links to the evidence in the source paper.
 
-## Project Overview
+## What This Repo Contains
 
-Experimentein.ai treats evidence and items as first-class, structured entities extracted from scientific papers. The system provides:
-
-- Evidence-first indexing and retrieval (papers, sections, blocks, items)
-- Similarity-based exploration using vector search
-- Explicit provenance with traceable links back to source blocks
-- Research collections, activity history, and usage credits
-
-The platform is a research prototype for transparent discovery and comparison of experimental knowledge, not a predictive or outcome-inference system.
+- A v2 extraction pipeline that turns PDFs into structured blocks and experiment items
+- A Next.js 16 web app for search, exploration, and evidence viewing
+- A lightweight scrapper service that uploads assets to UploadThing
+- An MCP server that exposes Qdrant + Astra tools to the app agent
+- A Docker-based GROBID instance for TEI extraction
 
 ## Architecture Overview
 
-The system separates extraction, storage, retrieval, and user interaction across specialized components.
+### Storage
 
-### Storage Layer
+- **Astra DB (Cassandra)**  Canonical storage for papers, sections, blocks, items, and metadata
+- **Qdrant**  Vector search for blocks/sections/papers/items
+- **MongoDB**  User auth, sessions, credits, and app state
+- **UploadThing**  File storage for PDFs, figures, tables, and JSON assets
 
-- Astra DB (Data API): canonical storage for structured records (papers, sections, blocks, items) with provenance
-- Qdrant: vector search over embeddings with lightweight payloads
-- MongoDB + Mongoose: authentication, sessions, credits, and app-level data
+### Processing
 
-### Processing Stack
-
-- Docling and GROBID: PDF to structured content and TEI extraction
-- lxml + spaCy: document parsing and block normalization
-- UploadThing: asset uploads (PDFs, tables, images)
-- Embeddings: vector generation for similarity search
-- Google ADK + OpenRouter: in-app AI agent and model access
-
-### Web Application
-
-- Next.js 16 (App Router) with React 19
-- Auth.js (NextAuth) with Google and GitHub providers
-- Evidence viewer with highlights and traceability
-
-## Key Design Decisions
-
-- Split storage for auditability and speed: Astra DB as the canonical source, Qdrant for fast similarity search.
-- Evidence-first UX: every surfaced result is traceable back to source blocks.
-- Modular pipeline: pdf_to_infra, structure_to_blocks, and blocks_to_items can evolve independently.
-- App data isolation: MongoDB holds user and product data, separate from scientific records.
-- Vendor-agnostic AI access: OpenRouter provides model selection while ADK handles agent logic.
+- **GROBID**  PDF to TEI XML
+- **Docling**  PDF structure extraction (used in v2)
+- **lxml + spaCy**  Structural parsing and normalization
+- **OpenRouter embeddings**  Vector creation (bge-m3)
+- **OpenAI-compatible LLMs**  Candidate extraction/merging in v2
+- **LangGraph**  In-app agent orchestration
 
 ## Repository Structure
 
-Each module has its own README with setup and usage details.
-
 ```
 vectors-in-orbit-2026/
-|-- extraction-pipeline-v2/   # PDF processing and itemization pipeline
-|-- experimentein.ai/         # Next.js web application
-|-- grobid-instance/          # GROBID + Flask API wrapper
-|-- scrapper-service/         # Asset upload / scraping service
-|-- README.md                 # This file
++-- extraction-pipeline-v2/     # v2 pipeline modules
++-- experimentein.ai/           # Next.js web app
++-- scrapper-service/           # UploadThing file uploader
++-- mcp_server_qdrant_astra/     # MCP server (Qdrant + Astra + OpenRouter embeddings)
++-- grobid-instance/            # Docker-based GROBID space
++-- README.md                   # This file
 ```
 
-## System Diagram
+## Pipeline v2 (Extraction)
 
-```mermaid
-flowchart TB
-  PDFs[Paper PDFs] --> UploadThing[(UploadThing)]
-  PDFs[Paper PDFs] --> Docling
-  PDFs[Paper PDFs] --> Grobid
-  Docling --> Pipeline[extraction-pipeline-v2]
-  Grobid --> Pipeline
-  Pipeline --> Astra[(AstraDB)]
-  Pipeline --> Qdrant[(Qdrant)]
-  App[experimentein.ai Next.js] --> Astra
-  App[experimentein.ai Next.js] --> UploadThing
-  App --> Qdrant
-  App --> Mongo[(MongoDB)]
-  App --> ADK[Google ADK]
-  App --> OpenRouter[OpenRouter Embedding/LLMs]
-  Pipeline --> OpenRouter[OpenRouter Embedding/LLMs]
-  ADK --> OpenRouter[OpenRouter Embedding/LLMs]
-```
+Pipeline stages run as separate modules:
 
-## Modules
+1. **pdf_to_infra**  Ingest PDF, call Docling/GROBID, extract assets, upload to UploadThing, store `papers_data` in Astra
+2. **structure_to_blocks**  Normalize sections/blocks, summarize sections, embed to Qdrant, store in Astra
+3. **blocks_to_items**  Retrieval-first candidate generation, deterministic merge, store items and vectors
 
-### extraction-pipeline-v2
+See `extraction-pipeline-v2/README.md` for setup and module docs.
 
-Second-generation pipeline to turn PDFs into structured items. It includes:
+## Web Application
 
-- pdf_to_infra: ingest PDFs, extract tables/figures, upload assets
-- structure_to_blocks: normalize structure into blocks/sections/papers
-- blocks_to_items: retrieval-first candidate discovery and deterministic merging
-- storage: Astra + Qdrant clients, schema manifests, init scripts
+`experimentein.ai/` is a Next.js 16 app with:
 
-See `extraction-pipeline-v2/README.md` for the pipeline flow, specs, and quick start.
+- Evidence-first search across papers/sections/blocks/items
+- Experiment viewer and comparison tools
+- Credit accounting and usage history
+- LangGraph agent with optional MCP-backed search tools
 
-### experimentein.ai
+See `experimentein.ai/README.md` for app setup.
 
-Next.js app for search, evidence viewing, research collections, and AI assistance.
+## Quick Start (Local)
 
-Key features:
+1. Start dependencies (Qdrant, MongoDB, Astra, UploadThing, OpenRouter API key).
+2. Run GROBID and Docling services.
+3. Run the pipeline modules from `extraction-pipeline-v2/`.
+4. Run the web app from `experimentein.ai/`.
 
-- Evidence-first search across papers, sections, blocks, and items
-- Research collections, activity tracking, and credits ledger
-- PDF evidence viewer with highlights
-- Auth.js (NextAuth) with Google/GitHub providers
-- AI agent powered by Google ADK + OpenRouter
+Each module has its own README with exact commands and env vars.
 
-See `experimentein.ai/README.md` for environment variables and run commands.
+### Quickstart Links
 
-### grobid-instance
-
-Dockerized GROBID service with a small Flask API for TEI extraction.
-
-Endpoints:
-
-- GET / (health check)
-- POST /process (multipart/form-data with PDF field name "file")
-
-We also host a Docling instance (similar to GROBID) using docling-serve:
-
-```
-https://github.com/DS4SD/docling-serve
-```
-
-See `grobid-instance/README.md` for usage.
-
-### scrapper-service
-
-Lightweight service (Bun + Express) used for asset ingestion and uploads (UploadThing).
-
-See `scrapper-service/package.json` for scripts and dependencies.
-
-## Technology Stack (Current)
-
-| Component | Technology | Purpose |
-| --- | --- | --- |
-| PDF Processing | Docling, GROBID | Convert PDFs to structured content |
-| XML Parsing | lxml | Parse and extract from TEI |
-| NLP | spaCy | Tokenization and normalization |
-| Embeddings | Vector model (configured in pipeline) | Dense vector generation |
-| Canonical Storage | Astra DB (Data API) | Full records with provenance |
-| Vector Search | Qdrant | Semantic similarity retrieval |
-| App Database | MongoDB + Mongoose | User and product data |
-| Auth | Auth.js (NextAuth) | Authentication and sessions |
-| AI Orchestration | Google ADK + OpenRouter | Agent workflows and LLM access |
-| Web Framework | Next.js 16 + React 19 | UI and server logic |
-
-## Getting Started (High Level)
-
-1. Start the GROBID instance (`grobid-instance/`).
-2. Run the extraction pipeline (`extraction-pipeline-v2/`).
-3. Run the web app (`experimentein.ai/`).
-
-Each module has its own README with detailed instructions and environment variables.
+1. `extraction-pipeline-v2/README.md`
+2. `extraction-pipeline-v2/pdf_to_infra/README.md`
+3. `extraction-pipeline-v2/structure_to_blocks/README.md`
+4. `extraction-pipeline-v2/blocks_to_items/README.md`
+5. `extraction-pipeline-v2/storage/README.md`
+6. `scrapper-service/README.md`
+7. `mcp_server_qdrant_astra/README.md`
+8. `grobid-instance/README.md`
+9. `experimentein.ai/README.md`
+10. `experimentein.ai/ai/README.md`
 
 ## Team
 
-- Mohamed Amin Abassi
+- Mohamed Amin Abassi (Lead)
 - Fatma Ben Lakdhar
 - Rima Ardhaoui
 - Amina Bayoudh
@@ -166,4 +131,4 @@ Each module has its own README with detailed instructions and environment variab
 
 ## License
 
-Copyright (c) 2026 Babyneers Team. All rights reserved.
+ 2026 Babyneers Team. All rights reserved.

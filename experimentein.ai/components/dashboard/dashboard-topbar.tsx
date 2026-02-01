@@ -13,14 +13,6 @@ export function DashboardTopBar({ title, subtitle }: DashboardTopBarProps) {
         </h1>
         {subtitle ? <p className="text-sm text-neutral-500">{subtitle}</p> : null}
       </div>
-      <div className="flex flex-wrap gap-3">
-        <button type="button" className="btn-secondary">
-          New search
-        </button>
-        <button type="button" className="btn-primary">
-          Compare items
-        </button>
-      </div>
     </div>
   );
 }

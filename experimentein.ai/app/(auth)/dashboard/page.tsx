@@ -10,7 +10,6 @@ import { User } from "@/models/User";
 import { Research } from "@/models/Research";
 import { ResearchItem } from "@/models/ResearchItem";
 import { listRecentActivity } from "@/storage/activity";
-import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -74,8 +73,8 @@ export default async function DashboardPage() {
         />
         <StatCard
           label="Evidence linked"
-          value="98%"
-          helper="Across research collections"
+          value="—"
+          helper="Calculated when evidence is linked"
         />
       </div>
       <div className="grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
@@ -91,23 +90,17 @@ export default async function DashboardPage() {
             <h3 className="text-lg font-semibold text-neutral-900">Quick actions</h3>
             <span className="text-xs text-neutral-500">Power user flow</span>
           </div>
-          <div className="mt-4 flex flex-col gap-3">
-            <Link className="btn-primary" href="/dashboard/search">
-              Run a new search
-            </Link>
-            <Link className="btn-secondary" href="/dashboard/items">
-              Compare items
-            </Link>
-            <Link className="btn-secondary" href="/dashboard/research">
-              Review research
-            </Link>
+          <div className="mt-4 space-y-3 text-sm text-neutral-600">
+            <p>Run a new search to discover fresh items.</p>
+            <p>Compare items to build evidence packs.</p>
+            <p>Review research to keep collections up to date.</p>
           </div>
           <div className="mt-5 rounded-2xl border border-dashed border-neutral-200 p-4 text-xs text-neutral-500">
             Tip: Save an item to build evidence packs for reports.
           </div>
         </div>
       </div>
-      <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+      <div className="grid gap-4">
         <ActivityCard
           items={
             activityItems.length
@@ -127,9 +120,6 @@ export default async function DashboardPage() {
           <h3 className="text-lg font-semibold text-neutral-900">
             Research highlights
           </h3>
-          <Link className="btn-secondary text-xs" href="/dashboard/research">
-            View all research
-          </Link>
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {highlights.length === 0 ? (

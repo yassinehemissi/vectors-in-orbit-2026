@@ -25,7 +25,10 @@ export const authOptions: NextAuthOptions = {
     error: "/sign-in",
   },
   callbacks: {
-    async signIn({ user }) {
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
+        return false;
+      }
       if (!user?.email) {
         return false;
       }
