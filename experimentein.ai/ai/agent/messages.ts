@@ -29,6 +29,43 @@ export function formatToolMessages(messages: ToolMessage[]) {
 
 type DashboardLink = { url: string; label: string };
 
+function normalizeSnippet(text: string) {
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  if (!cleaned) return "";
+  const words = cleaned.split(" ");
+  return words.slice(0, 12).join(" ") + (words.length > 12 ? "…" : "");
+}
+
+function pickLabelFromPayload(payload: any) {
+  if (!payload || typeof payload !== "object") return "";
+  const fields = [
+    "title",
+    "heading",
+    "name",
+    "label",
+    "summary",
+    "text",
+    "content",
+  ];
+  for (const field of fields) {
+    const value = payload[field];
+    if (typeof value === "string" && value.trim()) {
+      return field === "text" || field === "content"
+        ? normalizeSnippet(value)
+        : value.trim();
+    }
+  }
+  return "";
+}
+
+function labelFromUrl(url: string) {
+  if (url.includes("/dashboard/papers/")) return "Paper";
+  if (url.includes("/dashboard/sections/")) return "Section";
+  if (url.includes("/dashboard/blocks/")) return "Block";
+  if (url.includes("/dashboard/items/")) return "Item";
+  return "Dashboard";
+}
+
 function extractLinksFromPayload(payload: any) {
   if (!payload) return [] as DashboardLink[];
   const links: DashboardLink[] = [];
@@ -36,22 +73,11 @@ function extractLinksFromPayload(payload: any) {
     ? payload.dashboard_links.filter((link: unknown) => typeof link === "string")
     : [];
 
-  const title =
-    typeof payload?.title === "string" && payload.title.trim()
-      ? payload.title.trim()
-      : undefined;
+  const labelHint = pickLabelFromPayload(payload);
 
   for (const url of urls) {
-    let label = "Dashboard Link";
-    if (url.includes("/dashboard/papers/") && title) {
-      label = `Paper: ${title}`;
-    } else if (url.includes("/dashboard/sections/")) {
-      label = "Section";
-    } else if (url.includes("/dashboard/blocks/")) {
-      label = "Block";
-    } else if (url.includes("/dashboard/items/")) {
-      label = "Item";
-    }
+    const base = labelFromUrl(url);
+    const label = labelHint ? `${base}: ${labelHint}` : base;
     links.push({ url, label });
   }
   return links;

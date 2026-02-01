@@ -1,9 +1,9 @@
 import { Client } from "@modelcontextprotocol/sdk/client";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import {
   CallToolResultSchema,
   ListToolsResultSchema,
-} from "@modelcontextprotocol/sdk/types";
+} from "@modelcontextprotocol/sdk/types.js";
 
 const APP_NAME = "experimentein-agent";
 const MCP_DEBUG = process.env.MCP_DEBUG === "1" || process.env.MCP_DEBUG === "true";

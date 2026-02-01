@@ -5,7 +5,10 @@ import { ToolNode, toolsCondition } from "@langchain/langgraph/prebuilt";
 import { buildInstruction } from "@/ai/agent/prompts";
 import { buildSearchTools } from "@/ai/agent/tools";
 import { buildLinkFixer } from "@/ai/agent/link-fixer";
+import { buildResponseFormatter } from "@/ai/agent/formatter";
 import { buildLinkSanitizer } from "@/ai/agent/links";
+import { buildAdversarialCritic } from "@/ai/agent/critic";
+import { buildUserTone } from "@/ai/agent/tone";
 
 // 1. Définition de l'Annotation d'état (Recommandé pour la clarté et le typage)
 const AgentState = Annotation.Root({
@@ -33,6 +36,9 @@ export function buildAgentGraph(model: string) {
 
   const toolNode = new ToolNode(tools);
   const linkFixer = buildLinkFixer(model);
+  const formatter = buildResponseFormatter(model);
+  const critic = buildAdversarialCritic(model);
+  const tone = buildUserTone(model);
 
   // Utilisation du type AgentState pour le paramètre 'state'
   const callModel = async (state: typeof AgentState.State) => {
@@ -52,20 +58,25 @@ export function buildAgentGraph(model: string) {
   return new StateGraph(AgentState)
     .addNode("agent", callModel)
     .addNode("tools", toolNode)
+    .addNode("critic", critic)
     .addNode("link_fixer", linkFixer)
+    .addNode("formatter", formatter)
     .addNode("sanitize", sanitizeLinks)
-    .addEdge(START, "agent")
+    .addNode("tone", tone)
     .addEdge(START, "agent")
    .addConditionalEdges(
       "agent",
       toolsCondition, 
       {
         tools: "tools",
-        __end__: "link_fixer" 
+        __end__: "critic" 
       }
     )
     .addEdge("tools", "agent")
-    .addEdge("link_fixer", "sanitize")
-    .addEdge("sanitize", END)
+    .addEdge("critic", "link_fixer")
+    .addEdge("link_fixer", "formatter")
+    .addEdge("formatter", "sanitize")
+    .addEdge("sanitize", "tone")
+    .addEdge("tone", END)
     .compile({ checkpointer });
 }

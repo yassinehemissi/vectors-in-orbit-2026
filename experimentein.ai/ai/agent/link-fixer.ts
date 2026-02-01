@@ -69,6 +69,7 @@ export function buildLinkFixer(model: string) {
 function normalizeMarkdown(text: string) {
   let output = text;
   output = output.replace(/(^|\n)(#{1,6})([^#\s])/g, "$1$2 $3");
+  output = output.replace(/(^|\n)(#{1,6})\s*-\s+/g, "$1$2 ");
   output = output.replace(/\s+\./g, ".");
   output = output.replace(/\*\*\s*\*\*/g, "");
   output = output.replace(/\*{4,}/g, "");

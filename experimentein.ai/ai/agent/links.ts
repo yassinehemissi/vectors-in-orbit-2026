@@ -37,7 +37,7 @@ function sanitizeMessageContent(message: AIMessage) {
   if (Array.isArray(content)) {
     return content.map((part) => {
       if (typeof part === "string") {
-        return normalizeLinks(part);
+        return { type: "text", text: normalizeLinks(part) } as const;
       }
       if ("text" in part && typeof part.text === "string") {
         return { ...part, text: normalizeLinks(part.text) };

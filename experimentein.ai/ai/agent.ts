@@ -1,4 +1,9 @@
-import { HumanMessage, ToolMessage } from "@langchain/core/messages";
+import {
+  AIMessage,
+  HumanMessage,
+  SystemMessage,
+  ToolMessage,
+} from "@langchain/core/messages";
 import { DEFAULT_AGENT_MODEL } from "@/lib/agent-models";
 import { buildAgentGraph } from "@/ai/agent/graph";
 import {
@@ -13,12 +18,45 @@ export async function runAgent(params: {
   sessionId: string;
   message: string;
   model?: string;
+  previousSummary?: string;
+  recentMessages?: Array<{
+    role: "user" | "assistant";
+    content: string;
+  }>;
 }) {
   const model = params.model ?? DEFAULT_AGENT_MODEL;
   const graph = buildAgentGraph(model);
 
+  const historyMessages = (params.recentMessages ?? [])
+    .filter((entry) => typeof entry.content === "string" && entry.content.trim())
+    .map((entry) =>
+      entry.role === "assistant"
+        ? new AIMessage(entry.content)
+        : new HumanMessage(entry.content)
+    );
+
+  const initialMessages = [
+    ...(params.previousSummary?.trim()
+      ? [
+          new SystemMessage(
+            `Conversation summary (use as context):\n${params.previousSummary.trim()}`
+          ),
+        ]
+      : []),
+    ...historyMessages,
+  ];
+
+  const lastIsCurrentUser =
+    initialMessages.length > 0 &&
+    initialMessages[initialMessages.length - 1].getType() === "human" &&
+    extractText(initialMessages[initialMessages.length - 1]) === params.message;
+
+  if (!lastIsCurrentUser) {
+    initialMessages.push(new HumanMessage(params.message));
+  }
+
   const result = await graph.invoke(
-    { messages: [new HumanMessage(params.message)] },
+    { messages: initialMessages },
     { configurable: { thread_id: params.sessionId } }
   );
 

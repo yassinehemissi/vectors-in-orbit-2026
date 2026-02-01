@@ -124,7 +124,7 @@ async function embedQuery(query: string) {
 
 export function createSearchTool(name: string, description: string) {
   return tool(
-    async (input) => {
+    async (input: any) => {
       const query = String(input?.query ?? "").trim();
       const limit = typeof input?.limit === "number" ? input.limit : 5;
       if (!query) {
