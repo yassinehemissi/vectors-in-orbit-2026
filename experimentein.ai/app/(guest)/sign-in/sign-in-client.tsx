@@ -60,6 +60,9 @@ export default function SignInClient() {
             <p className="mt-2 text-sm text-neutral-500">
               Use your email and password to continue.
             </p>
+            <p className="mt-1 text-xs text-neutral-500">
+              Note: only GitHub sign-in is currently available.
+            </p>
             {errorMessage ? (
               <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
                 {errorMessage}
@@ -73,6 +76,7 @@ export default function SignInClient() {
                   type="email"
                   placeholder="you@lab.com"
                   className="mt-2 w-full rounded-2xl border border-neutral-200/70 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-400 focus:outline-none"
+                  disabled
                 />
               </div>
               <div>
@@ -81,9 +85,10 @@ export default function SignInClient() {
                   type="password"
                   placeholder="••••••••"
                   className="mt-2 w-full rounded-2xl border border-neutral-200/70 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-400 focus:outline-none"
+                  disabled
                 />
               </div>
-              <button type="submit" className="btn-primary w-full">
+              <button type="submit" className="btn-primary w-full" disabled>
                 Continue
               </button>
             </form>
@@ -97,7 +102,7 @@ export default function SignInClient() {
               <div className="mt-4 grid gap-3">
                 <button
                   type="button"
-                  className="btn-secondary w-full"
+                  className="btn-secondary w-full" disabled
                   onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
                 >
                   Continue with Google

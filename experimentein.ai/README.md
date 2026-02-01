@@ -1,15 +1,15 @@
-Ôªø# Experimentein.ai
+# Experimentein.ai
 
 Experimentein.ai is a research-first platform for exploring scientific papers, items, and evidence with traceable provenance.
 
 ## Features
 
 - Evidence-first search across papers, sections, blocks, and items
-- Structured research collections (‚ÄúResearch‚Äù) with saved items
+- Structured research collections ("Research") with saved items
 - Credits system with ledger + receipts
 - Activity tracking and recent actions
 - PDF evidence viewer with highlights
-- Auth via Auth.js (NextAuth) + Google/GitHub providers
+- Auth via Auth.js (NextAuth)
 - AI agent powered by OpenRouter via LangGraph
 
 ## Tech Stack
@@ -24,11 +24,11 @@ Experimentein.ai is a research-first platform for exploring scientific papers, i
 
 ## Project Structure
 
-- `app/` ‚Äì Next.js routes (static, guest, auth)
-- `components/` ‚Äì UI components
-- `storage/` ‚Äì Data access + search
-- `models/` ‚Äì Mongoose schemas
-- `ai/` ‚Äì LangGraph agent + OpenRouter adapter
+- `app/` ñ Next.js routes (static, guest, auth)
+- `components/` ñ UI components
+- `storage/` ñ Data access + search
+- `models/` ñ Mongoose schemas
+- `ai/` ñ LangGraph agent + OpenRouter adapter
 
 ## Getting Started
 
@@ -46,20 +46,31 @@ Create `.env` with:
 # NextAuth
 NEXTAUTH_URL=
 NEXTAUTH_SECRET=
+AUTH_SECRET=
 
-# OAuth
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
+# OAuth (GitHub is enabled; Google is configured but disabled by code)
 GITHUB_CLIENT_ID=
 GITHUB_CLIENT_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 
 # MongoDB
 MONGODB_URI=
 
-# OpenRouter
+# OpenRouter (LLM + embeddings)
 OPENROUTER_API_KEY=
+OPENROUTER_API_BASE=https://openrouter.ai/api/v1
+OPENROUTER_EMBEDDING_MODEL=baai/bge-m3
+OPENROUTER_EMBEDDING_DIM=1024
 
-# Qdrant MCP (optional)\r\nMCP_QDRANT_URL=http://127.0.0.1:8000\r\n# Optional MCP auth\r\nMCP_QDRANT_API_KEY=\r\n# Defaults to Authorization if not set\r\nMCP_QDRANT_API_KEY_HEADER=\r\n# JSON object of headers to merge\r\nMCP_QDRANT_HEADERS={}\r\n
+# Qdrant MCP (optional)
+MCP_QDRANT_URL=http://127.0.0.1:8000
+MCP_QDRANT_API_KEY=
+MCP_QDRANT_API_KEY_HEADER=
+MCP_QDRANT_HEADERS={}
+MCP_QDRANT_COLLECTION=
+MCP_DEBUG=
+
 # Qdrant
 QDRANT_URL=
 QDRANT_API_KEY=
@@ -67,7 +78,7 @@ QDRANT_API_KEY=
 # Astra Data API
 ASTRA_DB_API_ENDPOINT=
 ASTRA_DB_APPLICATION_TOKEN=
-ASTRA_DB_NAMESPACE=
+ASTRA_KEYSPACE=
 ```
 
 ### 3) Run
@@ -107,7 +118,3 @@ The in-app agent runs inside the Next.js server:
 ## License
 
 Private project.
-
-
-
-

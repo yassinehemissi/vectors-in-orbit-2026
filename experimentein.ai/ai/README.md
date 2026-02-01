@@ -1,15 +1,17 @@
 # ai
 
-To install dependencies:
+LangGraph-based agent used by the Next.js app. The agent is not a standalone service.
+
+## How it runs
+
+- Invoked by the app through `POST /api/agent`
+- Uses OpenRouter for model access
+- Optionally calls MCP tools if `MCP_QDRANT_URL` is set
+
+## Development
+
+Run the app from `experimentein.ai/`:
 
 ```bash
-bun install
+bun run dev
 ```
-
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.3.5. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.

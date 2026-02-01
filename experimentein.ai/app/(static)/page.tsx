@@ -440,6 +440,9 @@ export default function Home() {
                       <h3 className="font-display text-2xl font-semibold text-neutral-900">
                         Sign in
                       </h3>
+                      <p className="mt-1 text-xs text-neutral-500">
+                        Note: only GitHub sign-in is currently available.
+                      </p>
                     </div>
                     <button
                       type="button"
@@ -458,6 +461,7 @@ export default function Home() {
                         type="email"
                         placeholder="you@lab.com"
                         className="mt-2 w-full rounded-2xl border border-neutral-200/70 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-400 focus:outline-none"
+                        disabled
                       />
                     </div>
                     <div>
@@ -468,9 +472,10 @@ export default function Home() {
                         type="password"
                         placeholder="••••••••"
                         className="mt-2 w-full rounded-2xl border border-neutral-200/70 bg-neutral-50 px-4 py-3 text-sm text-neutral-700 focus:border-neutral-400 focus:outline-none"
+                        disabled
                       />
                     </div>
-                    <button type="submit" className="btn-primary w-full">
+                    <button type="submit" className="btn-primary w-full" disabled>
                       Continue
                     </button>
                   </form>
@@ -481,15 +486,16 @@ export default function Home() {
                       <span className="h-px w-full bg-neutral-200/70" />
                     </div>
                     <div className="mt-3 grid gap-3">
-                      <button
-                        type="button"
-                        className="btn-secondary w-full"
-                        onClick={() =>
-                          signIn("google", { callbackUrl: "/dashboard" })
-                        }
-                      >
-                        Continue with Google
-                      </button>
+                        <button
+                          type="button"
+                          className="btn-secondary w-full"
+                          onClick={() =>
+                            signIn("google", { callbackUrl: "/dashboard" })
+                          }
+                          disabled
+                        >
+                          Continue with Google
+                        </button>
                       <button
                         type="button"
                         className="btn-secondary w-full"
