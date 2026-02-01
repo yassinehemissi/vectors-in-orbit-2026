@@ -24,11 +24,11 @@ Experimentein.ai is a research-first platform for exploring scientific papers, i
 
 ## Project Structure
 
-- `app/` – Next.js routes (static, guest, auth)
-- `components/` – UI components
-- `storage/` – Data access + search
-- `models/` – Mongoose schemas
-- `ai/` – LangGraph agent + OpenRouter adapter
+- `app/` ï¿½ Next.js routes (static, guest, auth)
+- `components/` ï¿½ UI components
+- `storage/` ï¿½ Data access + search
+- `models/` ï¿½ Mongoose schemas
+- `ai/` ï¿½ LangGraph agent + OpenRouter adapter
 
 ## Getting Started
 
