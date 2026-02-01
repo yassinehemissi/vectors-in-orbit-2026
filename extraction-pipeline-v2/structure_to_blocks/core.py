@@ -139,7 +139,7 @@ class StructureToBlocks:
                 session.execute(
                     f"INSERT INTO {cfg.astra_blocks} "
                     "(paper_id, block_id, section_id, type, section_path, text, text_hash, source, "
-                    "block_index, section_index, flags) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                    "block_index, section_index, docling_ref, flags) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                     (
                         paper_id,
                         block_id,
@@ -151,6 +151,7 @@ class StructureToBlocks:
                         json.dumps(b.get("source") or {}),
                         b.get("block_index"),
                         b.get("section_index"),
+                        b.get("docling_ref"),
                         json.dumps(b.get("flags") or {}),
                     ),
                 )
@@ -161,8 +162,8 @@ class StructureToBlocks:
                 summary = s.get("summary") or ""
                 session.execute(
                     f"INSERT INTO {cfg.astra_sections} "
-                    "(paper_id, section_id, section_title, summary, summary_chars, source_block_count, block_ids) "
-                    "VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                    "(paper_id, section_id, section_title, summary, summary_chars, source_block_count, block_ids, docling_ref) "
+                    "VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
                     (
                         paper_id,
                         section_id,
@@ -171,6 +172,7 @@ class StructureToBlocks:
                         len(summary),
                         s.get("source_block_count"),
                         s.get("block_ids") or [],
+                        s.get("docling_ref"),
                     ),
                 )
 
@@ -296,6 +298,7 @@ def _build_blocks_from_structure(
         if not isinstance(sec, dict):
             continue
         title = sec.get("title") or sec.get("section_title") or ""
+        section_docling_ref = _extract_docling_ref(sec)
         section_id = _stable_uuid(paper_id, f"section::{s_idx}::{title}")
         block_ids: List[str] = []
         blocks = sec.get("blocks") or []
@@ -310,6 +313,7 @@ def _build_blocks_from_structure(
             text = _extract_block_text(b, kind=kind, label=label, table_texts=table_texts)
             if not text:
                 continue
+            block_docling_ref = _extract_docling_ref(b)
             block = {
                 "block_id": block_id,
                 "section_id": section_id,
@@ -319,6 +323,7 @@ def _build_blocks_from_structure(
                 "block_index": block_index,
                 "section_index": s_idx,
                 "source": {"kind": kind, "label": label, "prov": b.get("prov"), "ref": b.get("ref")},
+                "docling_ref": block_docling_ref,
                 "flags": {},
             }
             blocks_out.append(block)
@@ -331,10 +336,23 @@ def _build_blocks_from_structure(
                 "section_path": [title] if title else [],
                 "source_block_count": len(block_ids),
                 "block_ids": block_ids,
+                "docling_ref": section_docling_ref,
             }
         )
 
     return sections_out, blocks_out
+
+
+def _extract_docling_ref(payload: Dict[str, object]) -> Optional[str]:
+    ref = payload.get("docling_ref") or payload.get("docling_id") or payload.get("ref")
+    if isinstance(ref, str) and ref.strip():
+        return ref.strip()
+    prov = payload.get("prov")
+    if isinstance(prov, dict):
+        ref = prov.get("docling_ref") or prov.get("docling_id") or prov.get("ref")
+        if isinstance(ref, str) and ref.strip():
+            return ref.strip()
+    return None
 
 
 def _extract_block_text(
