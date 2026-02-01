@@ -13,16 +13,25 @@ flowchart TD
   E -->|item vectors| D
 ```
 
+```mermaid
+flowchart LR
+  EP[extraction-pipeline-v2]
+  EP --> PDF[pdf_to_infra]
+  EP --> STB[structure_to_blocks]
+  EP --> BTI[blocks_to_items]
+  EP --> ST[storage]
+```
+
 ## Overview
 
 `extraction-pipeline-v2` is the second-generation pipeline that turns PDFs into structured, searchable items.
 
 ## Modules
 
-- `pdf_to_infra` — ingest PDFs, call Docling/GROBID, extract assets, upload files via scrapper-service (UploadThing), and store `papers_data` in Astra.
-- `structure_to_blocks` — normalize structure into papers/sections/blocks, summarize sections, embed to Qdrant, and store in Astra.
-- `blocks_to_items` — retrieval-first candidate discovery, deterministic merging, and item storage.
-- `storage` — Astra + Qdrant clients, schemas, and `init_db.py`.
+- `pdf_to_infra`  ingest PDFs, call Docling/GROBID, extract assets, upload files via scrapper-service (UploadThing), and store `papers_data` in Astra.
+- `structure_to_blocks`  normalize structure into papers/sections/blocks, summarize sections, embed to Qdrant, and store in Astra.
+- `blocks_to_items`  retrieval-first candidate discovery, deterministic merging, and item storage.
+- `storage`  Astra + Qdrant clients, schemas, and `init_db.py`.
 
 ## Quick Start
 
@@ -58,4 +67,4 @@ python -m blocks_to_items --paper-id <paper_hash>
 - This pipeline uses Astra Cassandra (secure connect bundle), not the Astra Data API.
 - Docling and GROBID are external services; make sure they are reachable before running `pdf_to_infra`.
 
-© BABYNEERS
+ BABYNEERS

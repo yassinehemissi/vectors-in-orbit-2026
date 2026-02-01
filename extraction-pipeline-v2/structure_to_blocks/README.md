@@ -1,5 +1,13 @@
 # structure_to_blocks
 
+```mermaid
+flowchart LR
+  PD[(Astra papers_data)] --> STB[structure_to_blocks]
+  UT[UploadThing assets] --> STB
+  STB --> AST[(Astra papers/sections/blocks)]
+  STB --> QD[(Qdrant vectors)]
+```
+
 Transforms stored paper structure into normalized sections and blocks, then persists them for retrieval.
 
 ## What it does
@@ -35,4 +43,4 @@ Transforms stored paper structure into normalized sections and blocks, then pers
 python -m structure_to_blocks --hash <paper_hash>
 ```
 
-© BABYNEERS
+ BABYNEERS

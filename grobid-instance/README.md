@@ -10,6 +10,13 @@ short_description: GROBID instance
 
 # Grobid Instance (HF Experimentein)
 
+```mermaid
+flowchart LR
+  C[Client] --> API[Flask API]
+  API --> GR[GROBID]
+  GR --> TEI[TEI XML]
+```
+
 ![grobid_space](image.png)
 
 This Space runs a local GROBID service and exposes a small Flask API for TEI extraction.

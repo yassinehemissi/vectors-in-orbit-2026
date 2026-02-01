@@ -1,5 +1,13 @@
 # storage
 
+```mermaid
+flowchart LR
+  ST[storage]
+  ST --> AS[Astra client + schema]
+  ST --> QD[Qdrant client + schema]
+  ST --> INIT[init_db.py]
+```
+
 Shared storage clients and schemas for Astra and Qdrant.
 
 ## What it contains

@@ -1,5 +1,15 @@
 # blocks_to_items
 
+```mermaid
+flowchart LR
+  SEC[(Astra sections)] --> BTI[blocks_to_items]
+  QDB[(Qdrant blocks)] --> BTI
+  BTI --> LLM[LLM candidate extraction]
+  LLM --> BTI
+  BTI --> AST[(Astra items)]
+  BTI --> QDI[(Qdrant item vectors)]
+```
+
 Candidate-driven item extraction from blocks using retrieval-first signals.
 
 ## What it does (v2.3)

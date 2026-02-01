@@ -1,5 +1,20 @@
 # Experimentein.ai
 
+```mermaid
+flowchart LR
+  APP[Next.js App]
+  APP --> UI[app/ + components/]
+  APP --> AI[ai/ agent]
+  APP --> ST[storage/]
+  APP --> DB[models/]
+
+  ST --> AST[(Astra Data API)]
+  ST --> QD[(Qdrant)]
+  DB --> MG[(MongoDB)]
+  AI --> OR[OpenRouter]
+  AI --> MCP[mcp_server_qdrant_astra]
+```
+
 Experimentein.ai is a research-first platform for exploring scientific papers, items, and evidence with traceable provenance.
 
 ## Features
@@ -24,11 +39,11 @@ Experimentein.ai is a research-first platform for exploring scientific papers, i
 
 ## Project Structure
 
-- `app/` � Next.js routes (static, guest, auth)
-- `components/` � UI components
-- `storage/` � Data access + search
-- `models/` � Mongoose schemas
-- `ai/` � LangGraph agent + OpenRouter adapter
+- `app/`  Next.js routes (static, guest, auth)
+- `components/`  UI components
+- `storage/`  Data access + search
+- `models/`  Mongoose schemas
+- `ai/`  LangGraph agent + OpenRouter adapter
 
 ## Getting Started
 

@@ -1,4 +1,38 @@
-# Babyneers � Vectors in Orbit 2026
+# Babyneers  Vectors in Orbit 2026
+
+```mermaid
+flowchart LR
+    EP[Extraction <i>extraction-pipeline-v2</i>]
+    APP[experimentein.ai]
+    LGA[lang-graph-agent]
+    SCR[scrapper-service]
+    MCP[mcp_server_qdrant_astra]
+    GR[grobid-instance]
+    DS[Docling <i>docling-serve</i>]
+    AXQ[(Astra-x-Qdrant)]
+    MDB[(MongoDB)]
+    UT[(UploadThing)]
+    PDF[Papers]
+  PDF --> DS
+  PDF --> GR
+  APP --> LGA
+  APP --> UT
+  EP --> UT
+  LGA-->MCP
+  MCP --> AXQ
+  AXQ --> MCP
+  AXQ --> APP
+  APP --> MDB
+  MDB --> APP
+  APP --> AXQ
+  AXQ --> EP
+  EP --> AXQ
+  MCP --> LGA
+  EP --> APP
+  SCR --> EP
+  GR --> EP
+  DS --> EP
+```
 
 ## Introduction
 
@@ -18,19 +52,19 @@ We built **Experimentein.ai**, a platform for extracting, indexing, and discover
 
 ### Storage
 
-- **Astra DB (Cassandra)** � Canonical storage for papers, sections, blocks, items, and metadata
-- **Qdrant** � Vector search for blocks/sections/papers/items
-- **MongoDB** � User auth, sessions, credits, and app state
-- **UploadThing** � File storage for PDFs, figures, tables, and JSON assets
+- **Astra DB (Cassandra)**  Canonical storage for papers, sections, blocks, items, and metadata
+- **Qdrant**  Vector search for blocks/sections/papers/items
+- **MongoDB**  User auth, sessions, credits, and app state
+- **UploadThing**  File storage for PDFs, figures, tables, and JSON assets
 
 ### Processing
 
-- **GROBID** � PDF to TEI XML
-- **Docling** � PDF structure extraction (used in v2)
-- **lxml + spaCy** � Structural parsing and normalization
-- **OpenRouter embeddings** � Vector creation (bge-m3)
-- **OpenAI-compatible LLMs** � Candidate extraction/merging in v2
-- **LangGraph** � In-app agent orchestration
+- **GROBID**  PDF to TEI XML
+- **Docling**  PDF structure extraction (used in v2)
+- **lxml + spaCy**  Structural parsing and normalization
+- **OpenRouter embeddings**  Vector creation (bge-m3)
+- **OpenAI-compatible LLMs**  Candidate extraction/merging in v2
+- **LangGraph**  In-app agent orchestration
 
 ## Repository Structure
 
@@ -48,9 +82,9 @@ vectors-in-orbit-2026/
 
 Pipeline stages run as separate modules:
 
-1. **pdf_to_infra** � Ingest PDF, call Docling/GROBID, extract assets, upload to UploadThing, store `papers_data` in Astra
-2. **structure_to_blocks** � Normalize sections/blocks, summarize sections, embed to Qdrant, store in Astra
-3. **blocks_to_items** � Retrieval-first candidate generation, deterministic merge, store items and vectors
+1. **pdf_to_infra**  Ingest PDF, call Docling/GROBID, extract assets, upload to UploadThing, store `papers_data` in Astra
+2. **structure_to_blocks**  Normalize sections/blocks, summarize sections, embed to Qdrant, store in Astra
+3. **blocks_to_items**  Retrieval-first candidate generation, deterministic merge, store items and vectors
 
 See `extraction-pipeline-v2/README.md` for setup and module docs.
 
@@ -97,4 +131,4 @@ Each module has its own README with exact commands and env vars.
 
 ## License
 
-� 2026 Babyneers Team. All rights reserved.
+ 2026 Babyneers Team. All rights reserved.

@@ -1,5 +1,15 @@
 # mcp-server-qdrant-astra
 
+```mermaid
+flowchart LR
+  MCP[MCP Server] --> QT[Qdrant tools]
+  MCP --> AT[Astra Data API tools]
+  MCP --> OR[OpenRouter embeddings]
+  QT --> QD[(Qdrant)]
+  AT --> AS[(Astra DB)]
+  OR --> API[OpenRouter API]
+```
+
 Python MCP server for Qdrant + Astra DB (Data API) + OpenRouter embeddings. Designed to run on Render as an HTTP (SSE) MCP server.
 
 ## Structure

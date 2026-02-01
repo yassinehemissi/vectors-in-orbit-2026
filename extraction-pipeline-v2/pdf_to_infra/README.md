@@ -1,5 +1,16 @@
 # pdf_to_infra
 
+```mermaid
+flowchart LR
+  PDF[PDF or Docling JSON] --> API[pdf_to_infra API]
+  API --> DL[Docling]
+  API --> GR[GROBID]
+  API --> AS[Extract assets]
+  AS --> SCR[scrapper-service]
+  SCR --> UT[UploadThing]
+  API --> AST[(Astra papers_data)]
+```
+
 Flask API that ingests a PDF (or a precomputed Docling JSON) and prepares assets for the pipeline.
 
 ## What it does

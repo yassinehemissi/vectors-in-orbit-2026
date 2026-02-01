@@ -1,5 +1,14 @@
 # ai
 
+```mermaid
+flowchart LR
+  API[POST /api/agent] --> G[LangGraph StateGraph]
+  G --> LLM[OpenRouter LLM]
+  G --> T[ToolNode]
+  T --> MCP[mcp_server_qdrant_astra]
+  G --> OUT[Formatter + Sanitizer + Tone]
+```
+
 LangGraph-based agent used by the Next.js app. The agent is not a standalone service.
 
 ## How it runs

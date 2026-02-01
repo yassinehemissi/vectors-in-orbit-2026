@@ -1,5 +1,11 @@
 # scrapper-service
 
+```mermaid
+flowchart LR
+  C[Pipeline client] --> S[scrapper-service]
+  S --> UT[UploadThing]
+```
+
 Tiny HTTP service that proxies UploadThing operations for the pipeline.
 
 ## What it does
