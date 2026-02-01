@@ -33,7 +33,7 @@ export async function runAgent(params: {
   if (reply) {
     if (dashboardLinks.length) {
       const linksBlock = dashboardLinks
-        .map((link) => `- [Dashboard Link](${link})`)
+        .map((link) => `- [${link.label}](${link.url})`)
         .join("\n");
       return {
         reply: `${reply}\n\nDashboard Links:\n${linksBlock}`,
@@ -51,7 +51,7 @@ export async function runAgent(params: {
   if (toolMessages.length) {
     if (dashboardLinks.length) {
       const linksBlock = dashboardLinks
-        .map((link) => `- [Dashboard Link](${link})`)
+        .map((link) => `- [${link.label}](${link.url})`)
         .join("\n");
       return {
         reply: `Dashboard Links:\n${linksBlock}`,

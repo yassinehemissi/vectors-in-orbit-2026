@@ -70,6 +70,9 @@ function normalizeMarkdown(text: string) {
   let output = text;
   output = output.replace(/(^|\n)(#{1,6})([^#\s])/g, "$1$2 $3");
   output = output.replace(/\s+\./g, ".");
+  output = output.replace(/\*\*\s*\*\*/g, "");
+  output = output.replace(/\*{4,}/g, "");
+  output = output.replace(/\s*---\s*/g, "\n---\n");
   output = output.replace(
     /(^|\n)(\/dashboard\/[^\s)]+)/g,
     "$1[Dashboard Link]($2)"

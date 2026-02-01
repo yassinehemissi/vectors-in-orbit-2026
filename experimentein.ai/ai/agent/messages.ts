@@ -27,24 +27,55 @@ export function formatToolMessages(messages: ToolMessage[]) {
   return lines.join("\n\n");
 }
 
+type DashboardLink = { url: string; label: string };
+
 function extractLinksFromPayload(payload: any) {
-  if (!payload) return [];
-  if (Array.isArray(payload.dashboard_links)) {
-    return payload.dashboard_links.filter((link) => typeof link === "string");
+  if (!payload) return [] as DashboardLink[];
+  const links: DashboardLink[] = [];
+  const urls = Array.isArray(payload.dashboard_links)
+    ? payload.dashboard_links.filter((link: unknown) => typeof link === "string")
+    : [];
+
+  const title =
+    typeof payload?.title === "string" && payload.title.trim()
+      ? payload.title.trim()
+      : undefined;
+
+  for (const url of urls) {
+    let label = "Dashboard Link";
+    if (url.includes("/dashboard/papers/") && title) {
+      label = `Paper: ${title}`;
+    } else if (url.includes("/dashboard/sections/")) {
+      label = "Section";
+    } else if (url.includes("/dashboard/blocks/")) {
+      label = "Block";
+    } else if (url.includes("/dashboard/items/")) {
+      label = "Item";
+    }
+    links.push({ url, label });
   }
-  return [];
+  return links;
 }
 
 export function extractDashboardLinks(messages: ToolMessage[]) {
-  const links: string[] = [];
+  const links: DashboardLink[] = [];
   for (const message of messages) {
     if (typeof message.content !== "string") continue;
     try {
       const parsed = JSON.parse(message.content);
+      if (parsed?.result?.results && Array.isArray(parsed.result.results)) {
+        for (const entry of parsed.result.results) {
+          links.push(...extractLinksFromPayload({ ...entry.payload, dashboard_links: parsed.dashboard_links }));
+        }
+      }
       links.push(...extractLinksFromPayload(parsed));
     } catch {
       continue;
     }
   }
-  return Array.from(new Set(links));
+  const dedup = new Map<string, DashboardLink>();
+  for (const link of links) {
+    if (!dedup.has(link.url)) dedup.set(link.url, link);
+  }
+  return Array.from(dedup.values());
 }

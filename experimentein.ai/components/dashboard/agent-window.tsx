@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import { AGENT_MODELS, DEFAULT_AGENT_MODEL } from "@/lib/agent-models";
 
 interface AgentMessage {
@@ -22,92 +25,48 @@ const CONVERSATION_STORAGE_KEY = "experimentein_agent_conversation";
 const AUTOSTART_STORAGE_KEY = "experimentein_agent_autostart";
 const MODEL_STORAGE_KEY = "experimentein_agent_model";
 
-function escapeHtml(input: string) {
-  return input
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
+const markdownComponents = {
+  h1: (props: any) => <h1 className="text-lg font-semibold" {...props} />,
+  h2: (props: any) => <h2 className="text-base font-semibold" {...props} />,
+  h3: (props: any) => <h3 className="text-sm font-semibold" {...props} />,
+  p: (props: any) => <p className="text-sm leading-relaxed" {...props} />,
+  ul: (props: any) => <ul className="ml-4 list-disc space-y-1" {...props} />,
+  ol: (props: any) => <ol className="ml-4 list-decimal space-y-1" {...props} />,
+  li: (props: any) => <li className="text-sm leading-relaxed" {...props} />,
+  a: (props: any) => (
+    <a className="text-emerald-300 underline" target="_self" rel="noreferrer" {...props} />
+  ),
+  code: (props: any) => (
+    <code className="rounded bg-neutral-200 px-1 py-0.5 text-xs" {...props} />
+  ),
+  pre: (props: any) => (
+    <pre className="overflow-x-auto rounded bg-neutral-900 p-3 text-xs text-neutral-100" {...props} />
+  ),
+  blockquote: (props: any) => (
+    <blockquote className="border-l-2 border-neutral-300 pl-3 text-sm italic" {...props} />
+  ),
+};
 
-function renderInlineMarkdown(input: string) {
-  let output = escapeHtml(input);
-  output = output.replace(/`([^`]+)`/g, "<code>$1</code>");
-  output = output.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-  output = output.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-  output = output.replace(
-    /\[([^\]]+)\]\(([^)]+)\)/g,
-    '<a href="$2" class="text-emerald-300 underline" target="_self" rel="noreferrer">$1</a>'
-  );
-  return output;
-}
-
-function markdownToHtml(input: string) {
-  const lines = input.split(/\r?\n/);
-  let html = "";
-  let inList = false;
-
-  for (const line of lines) {
-    if (!line.trim()) {
-      if (inList) {
-        html += "</ul>";
-        inList = false;
-      }
-      html += '<div class="h-2"></div>';
-      continue;
-    }
-
-    if (line.startsWith("### ")) {
-      if (inList) {
-        html += "</ul>";
-        inList = false;
-      }
-      html += `<h3 class="text-sm font-semibold">${renderInlineMarkdown(line.slice(4))}</h3>`;
-      continue;
-    }
-
-    if (line.startsWith("## ")) {
-      if (inList) {
-        html += "</ul>";
-        inList = false;
-      }
-      html += `<h2 class="text-base font-semibold">${renderInlineMarkdown(line.slice(3))}</h2>`;
-      continue;
-    }
-
-    if (line.startsWith("# ")) {
-      if (inList) {
-        html += "</ul>";
-        inList = false;
-      }
-      html += `<h1 class="text-lg font-semibold">${renderInlineMarkdown(line.slice(2))}</h1>`;
-      continue;
-    }
-
-    if (line.startsWith("- ")) {
-      if (!inList) {
-        html += '<ul class="ml-4 list-disc space-y-1">';
-        inList = true;
-      }
-      html += `<li>${renderInlineMarkdown(line.slice(2))}</li>`;
-      continue;
-    }
-
-    if (inList) {
-      html += "</ul>";
-      inList = false;
-    }
-
-    html += `<p>${renderInlineMarkdown(line)}</p>`;
-  }
-
-  if (inList) {
-    html += "</ul>";
-  }
-
-  return html;
-}
+const markdownSanitizeSchema = {
+  ...defaultSchema,
+  tagNames: [
+    ...(defaultSchema.tagNames ?? []),
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "pre",
+    "code",
+  ],
+  attributes: {
+    ...defaultSchema.attributes,
+    a: ["href", "title", "target", "rel"],
+    code: ["className"],
+    pre: ["className"],
+  },
+};
 
 export function DashboardAgent() {
   const [isOpen, setIsOpen] = useState(false);
@@ -409,12 +368,15 @@ export function DashboardAgent() {
                 }`}
               >
                 {message.role === "assistant" ? (
-                  <div
-                    className="space-y-2 text-neutral-800"
-                    dangerouslySetInnerHTML={{
-                      __html: markdownToHtml(message.content),
-                    }}
-                  />
+                  <div className="space-y-2 text-neutral-800">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[[rehypeSanitize, markdownSanitizeSchema]]}
+                      components={markdownComponents}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
                 ) : (
                   <p className="whitespace-pre-wrap text-neutral-800">
                     {message.content}
