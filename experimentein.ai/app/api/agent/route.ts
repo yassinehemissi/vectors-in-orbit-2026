@@ -9,7 +9,15 @@ import { AgentMessage } from "@/models/AgentMessage";
 import { updateConversationSummary } from "@/ai/summary";
 import { runAgent } from "@/ai/agent";
 
+const AGENT_DISABLED = true;
+
 export async function GET() {
+  if (AGENT_DISABLED) {
+    return NextResponse.json(
+      { error: "Agent is currently disabled." },
+      { status: 503 }
+    );
+  }
   return NextResponse.json({
     models: AGENT_MODELS,
     defaultModel: DEFAULT_AGENT_MODEL,
@@ -17,6 +25,12 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (AGENT_DISABLED) {
+    return NextResponse.json(
+      { error: "Agent is currently disabled." },
+      { status: 503 }
+    );
+  }
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -75,6 +89,14 @@ export async function POST(request: Request) {
     sessionId,
     message,
     model,
+    previousSummary: conversation.summary ?? "",
+    recentMessages: recentMessages
+      .slice()
+      .reverse()
+      .map((entry) => ({
+        role: entry.role === "assistant" ? "assistant" : "user",
+        content: entry.content,
+      })),
   });
 
   await AgentMessage.create({

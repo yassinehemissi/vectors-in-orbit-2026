@@ -1,10 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { ComponentType } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
 import { AGENT_MODELS, DEFAULT_AGENT_MODEL } from "@/lib/agent-models";
+import {
+  OpenAI,
+  Anthropic,
+  Google,
+  Meta,
+  Mistral,
+  DeepSeek,
+} from "@lobehub/icons";
 
 interface AgentMessage {
   id: string;
@@ -68,7 +77,42 @@ const markdownSanitizeSchema = {
   },
 };
 
+const PROVIDER_ORDER = [
+  "openai",
+  "anthropic",
+  "google",
+  "meta-llama",
+  "mistralai",
+  "deepseek",
+] as const;
+
+const PROVIDER_META: Record<
+  string,
+  { label: string; Icon: ComponentType<{ className?: string }> }
+> = {
+  openai: { label: "OpenAI", Icon: OpenAI },
+  anthropic: { label: "Anthropic", Icon: Anthropic },
+  google: { label: "Google", Icon: Google },
+  "meta-llama": { label: "Meta", Icon: Meta },
+  mistralai: { label: "Mistral", Icon: Mistral },
+  deepseek: { label: "DeepSeek", Icon: DeepSeek },
+};
+
+const formatModelLabel = (modelId: string) => {
+  const [, raw] = modelId.split("/");
+  if (!raw) return modelId;
+  return raw
+    .split("-")
+    .map((part) => {
+      if (/^\d+(\.\d+)?$/.test(part)) return part;
+      if (part.length <= 2) return part.toUpperCase();
+      return part[0].toUpperCase() + part.slice(1);
+    })
+    .join(" ");
+};
+
 export function DashboardAgent() {
+  const agentDisabled = true;
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<AgentMessage[]>([]);
   const [input, setInput] = useState("");
@@ -76,11 +120,13 @@ export function DashboardAgent() {
   const [model, setModel] = useState(DEFAULT_AGENT_MODEL);
   const [isLoading, setIsLoading] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isModelOpen, setIsModelOpen] = useState(false);
   const [conversations, setConversations] = useState<AgentConversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     null
   );
   const scrollRef = useRef<HTMLDivElement>(null);
+  const modelMenuRef = useRef<HTMLDivElement>(null);
 
   async function fetchConversations() {
     try {
@@ -133,6 +179,20 @@ export function DashboardAgent() {
     void fetchConversations();
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isModelOpen) return;
+    const handleClick = (event: MouseEvent) => {
+      if (
+        modelMenuRef.current &&
+        !modelMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsModelOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [isModelOpen]);
+
   const hint = useMemo(
     () =>
       messages.length
@@ -173,6 +233,7 @@ export function DashboardAgent() {
   };
 
   const handleSend = async () => {
+    if (agentDisabled) return;
     const trimmed = input.trim();
     if (!trimmed || isLoading) return;
 
@@ -250,7 +311,31 @@ export function DashboardAgent() {
   const handleModelChange = (value: string) => {
     setModel(value);
     window.localStorage.setItem(MODEL_STORAGE_KEY, value);
+    setIsModelOpen(false);
   };
+
+  const modelGroups = useMemo(() => {
+    const grouped: Record<string, string[]> = {};
+    AGENT_MODELS.forEach((modelId) => {
+      const provider = modelId.split("/")[0] ?? "other";
+      if (!grouped[provider]) grouped[provider] = [];
+      grouped[provider].push(modelId);
+    });
+    return grouped;
+  }, []);
+
+  const orderedProviders = useMemo(() => {
+    const extras = Object.keys(modelGroups).filter(
+      (provider) => !PROVIDER_ORDER.includes(provider as any)
+    );
+    return [...PROVIDER_ORDER, ...extras];
+  }, [modelGroups]);
+
+  const activeProvider = model.split("/")[0] ?? "openai";
+  const activeProviderMeta = PROVIDER_META[activeProvider];
+  const ActiveIcon = activeProviderMeta?.Icon;
+  const activeLabel = activeProviderMeta?.label ?? "Model";
+  const activeModelLabel = formatModelLabel(model);
 
   return (
     <div className="fixed inset-0 z-[70] pointer-events-none">
@@ -292,17 +377,93 @@ export function DashboardAgent() {
               Model
             </label>
             <div className="mt-2 flex items-center gap-2">
-              <select
-                className="flex-1 rounded-full border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold"
-                value={model}
-                onChange={(event) => handleModelChange(event.target.value)}
-              >
-                {AGENT_MODELS.map((modelOption) => (
-                  <option key={modelOption} value={modelOption}>
-                    {modelOption}
-                  </option>
-                ))}
-              </select>
+              <div className="relative flex-1" ref={modelMenuRef}>
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between rounded-full border border-neutral-200 bg-white px-3 py-2 text-xs font-semibold"
+                  onClick={() => setIsModelOpen((prev) => !prev)}
+                  aria-expanded={isModelOpen}
+                  aria-haspopup="listbox"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50 text-[10px]">
+                      {ActiveIcon ? (
+                        <ActiveIcon className="h-4 w-4 text-neutral-700" />
+                      ) : (
+                        activeLabel.slice(0, 2).toUpperCase()
+                      )}
+                    </span>
+                    <span className="flex flex-col text-left">
+                      <span className="text-[11px] text-neutral-500">
+                        {activeLabel}
+                      </span>
+                      <span>{activeModelLabel}</span>
+                    </span>
+                  </span>
+                  <span className="text-neutral-400">▾</span>
+                </button>
+
+                {isModelOpen ? (
+                  <div className="absolute left-0 top-full z-20 mt-2 w-full rounded-2xl border border-neutral-200 bg-white p-2 shadow-xl">
+                    <div className="max-h-64 space-y-2 overflow-y-auto px-1 py-1 text-xs">
+                      {orderedProviders.map((providerKey) => {
+                        const models = modelGroups[providerKey];
+                        if (!models || models.length === 0) return null;
+                        const meta = PROVIDER_META[providerKey];
+                        const ProviderIcon = meta?.Icon;
+                        return (
+                          <div key={providerKey}>
+                            <div className="flex items-center gap-2 px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-400">
+                              <span className="flex h-5 w-5 items-center justify-center rounded-full border border-neutral-200 bg-neutral-50">
+                                {ProviderIcon ? (
+                                  <ProviderIcon className="h-3.5 w-3.5 text-neutral-600" />
+                                ) : (
+                                  meta?.label?.slice(0, 2).toUpperCase()
+                                )}
+                              </span>
+                              {meta?.label ?? providerKey}
+                            </div>
+                            <div className="space-y-1">
+                              {models.map((modelId) => {
+                                const isActive = modelId === model;
+                                return (
+                                  <button
+                                    key={modelId}
+                                    type="button"
+                                    className={`flex w-full items-center justify-between rounded-xl border px-3 py-2 text-left ${
+                                      isActive
+                                        ? "border-neutral-900 bg-neutral-100"
+                                        : "border-neutral-200 bg-white hover:bg-neutral-50"
+                                    }`}
+                                    onClick={() => handleModelChange(modelId)}
+                                    role="option"
+                                    aria-selected={isActive}
+                                  >
+                                    <span className="flex flex-col">
+                                      <span className="font-semibold text-neutral-900">
+                                        {formatModelLabel(modelId)}
+                                      </span>
+                                      <span className="text-[11px] text-neutral-500">
+                                        {modelId}
+                                      </span>
+                                    </span>
+                                    {isActive ? (
+                                      <span className="text-[11px] font-semibold text-neutral-700">
+                                        Active
+                                      </span>
+                                    ) : null}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
               <button
                 type="button"
                 className="btn-secondary text-xs"
@@ -393,10 +554,15 @@ export function DashboardAgent() {
           </div>
 
           <div className="border-t border-neutral-200 bg-white px-4 py-3">
+            {agentDisabled ? (
+              <div className="mb-2 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                Agent is temporarily disabled.
+              </div>
+            ) : null}
             <div className="flex items-center gap-2">
               <input
                 className="flex-1 rounded-full border border-neutral-200 px-4 py-2 text-sm"
-                placeholder={hint}
+                placeholder={agentDisabled ? "Agent disabled." : hint}
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 onKeyDown={(event) => {
@@ -405,12 +571,13 @@ export function DashboardAgent() {
                     void handleSend();
                   }
                 }}
+                disabled={agentDisabled}
               />
               <button
                 type="button"
                 className="btn-primary"
                 onClick={() => void handleSend()}
-                disabled={isLoading}
+                disabled={isLoading || agentDisabled}
               >
                 Send
               </button>

@@ -14,9 +14,6 @@ export function CreditBalanceCard({ summary }: CreditBalanceCardProps) {
     <div className="rounded-3xl border border-neutral-200/70 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-neutral-900">Credits</h3>
-        <button type="button" className="btn-secondary text-xs">
-          Buy credits
-        </button>
       </div>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border border-neutral-200/70 bg-neutral-50 p-4">

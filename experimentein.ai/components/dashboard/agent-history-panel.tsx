@@ -1,6 +1,36 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeSanitize from "rehype-sanitize";
+
+const markdownSanitizeSchema = {
+  tagNames: [
+    "p",
+    "strong",
+    "em",
+    "ul",
+    "ol",
+    "li",
+    "code",
+    "pre",
+    "a",
+    "blockquote",
+    "hr",
+    "br",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+  ],
+  attributes: {
+    a: ["href", "title", "target", "rel"],
+    code: ["className"],
+  },
+};
 
 interface AgentConversation {
   id: string;
@@ -118,9 +148,45 @@ export function AgentHistoryPanel() {
                   {conversation.title}
                 </p>
                 {conversation.summary ? (
-                  <p className="mt-1 text-xs text-neutral-500">
-                    {conversation.summary}
-                  </p>
+                  <div className="mt-1 text-xs text-neutral-500">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[[rehypeSanitize, markdownSanitizeSchema]]}
+                      components={{
+                        p: ({ children }) => (
+                          <p className="text-xs text-neutral-500">{children}</p>
+                        ),
+                        ul: ({ children }) => (
+                          <ul className="ml-4 list-disc space-y-1 text-xs text-neutral-500">
+                            {children}
+                          </ul>
+                        ),
+                        ol: ({ children }) => (
+                          <ol className="ml-4 list-decimal space-y-1 text-xs text-neutral-500">
+                            {children}
+                          </ol>
+                        ),
+                        li: ({ children }) => <li>{children}</li>,
+                        a: ({ children, ...props }) => (
+                          <a
+                            {...props}
+                            className="text-neutral-900 underline underline-offset-2"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {children}
+                          </a>
+                        ),
+                        code: ({ children }) => (
+                          <code className="rounded bg-neutral-200/60 px-1 py-0.5 text-[11px] text-neutral-800">
+                            {children}
+                          </code>
+                        ),
+                      }}
+                    >
+                      {conversation.summary}
+                    </ReactMarkdown>
+                  </div>
                 ) : null}
               </div>
               <div className="flex flex-wrap items-center gap-2 text-xs">
